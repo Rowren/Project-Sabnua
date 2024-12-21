@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@font-face {
+    font-family: 'Prompt';
+    src: url('./assets/font/Prompt-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+body{
+    font-family: 'Prompt', sans-serif;
+}
