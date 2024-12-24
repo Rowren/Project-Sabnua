@@ -1,11 +1,13 @@
 const { query } = require("express")
 const prisma = require("../Config/prisma")
+const  cloudinary  = require ("cloudinary").v2;
 
 
 exports.create = async (req, res) => {
     try {
         // code
-        const { title, description, price, quantity, categoryId, images } = req.body
+        const { title, description, price, quantity, categoryId, images = [] } = req.body;
+
         // console.log(title, description, price, quantity, images)
         const product = await prisma.product.create({
             data: {
@@ -15,20 +17,25 @@ exports.create = async (req, res) => {
                 quantity: parseInt(quantity),
                 categoryId: parseInt(categoryId),
                 images: {
-                    create: images.map((item) => ({
-                        asset_id: item.asset_id,
-                        public_id: item.public_id,
-                        url: item.url,
-                        secure_url: item.secure_url
+                    create: (images || []).map((item) => ({
+                        asset_id: item.asset_id || "", // ให้เป็น string เปล่าถ้า undefined
+                        public_id: item.public_id || "",
+                        url: item.url || "",
+                        secure_url: item.secure_url || ""
                     }))
                 }
             }
-        })
+        });
+        
         res.send(product)
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: "Server error" })
+    }catch (err) {
+        console.error("Error creating product:", err);
+        res.status(500).json({
+            message: "Server error",
+            error: err.message // ส่งข้อความข้อผิดพลาดกลับไปให้ผู้ใช้งาน (สำหรับดีบัก)
+        });
     }
+    
 }
 
 
@@ -50,6 +57,7 @@ exports.list = async (req, res) => {
         res.status(500).json({ message: "Server error" })
     }
 }
+
 exports.read = async (req, res) => {
     try {
         // code
@@ -94,20 +102,23 @@ exports.update = async(req,res) => {
                 quantity: parseInt(quantity),
                 categoryId: parseInt(categoryId),
                 images: {
-                    create: images.map((item) => ({
-                        asset_id: item.asset_id,
-                        public_id: item.public_id,
-                        url: item.url,
-                        secure_url: item.secure_url
+                    create: (images || []).map((item) => ({
+                        asset_id: item.asset_id || "", // ให้เป็น string เปล่าถ้า undefined
+                        public_id: item.public_id || "",
+                        url: item.url || "",
+                        secure_url: item.secure_url || ""
                     }))
                 }
             }
         })
         res.send(product)
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: "Server Error" })
-    }
+        console.error("Error creating product:", err);
+        res.status(500).json({
+            message: "Server error",
+            error: err.message // ส่งข้อความข้อผิดพลาดกลับไปให้ผู้ใช้งาน (สำหรับดีบัก)
+        });
+}
 }
 
 exports.remove = async(req,res) => {
@@ -240,12 +251,50 @@ exports.searchFilters = async(req,res) => {
         }
 
 
-
-
-
         // res.send("Search Filter Product")
     } catch (err) {
         console.log(err)
         res.status(500).json({ message: "Server Error" })
     }
 }
+
+
+
+// Configuration
+cloudinary.config({ 
+    cloud_name: process.env.CLOUDINART_CLOUD_NAME, 
+    api_key: process.env.CLOUDINART_API_KEY, 
+    api_secret: process.env.CLOUDINART_API_SECRET
+});
+
+exports.createImages = async(req,res) => {
+    try {
+        const result = await cloudinary.uploader.upload(req.body.image,{
+            public_id: `${Date.now()}`,
+            resource_type: 'auto',
+            folder:'Project Sabnua'
+        })
+        res.json(result)
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ message: 'Server Error ' })
+    }
+}
+
+exports.removeImage = async (req, res) => {
+    try {
+        const { public_id } = req.body; // รับค่าจาก body
+        if (!public_id) {
+            return res.status(400).json({ message: "Public ID is required" });
+        }
+
+        // ลบรูปภาพจาก Cloudinary หรือระบบจัดเก็บอื่น ๆ
+        const result = await cloudinary.uploader.destroy(public_id);
+
+        res.json({  success: true, result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error deleting image" });
+    }
+};
+

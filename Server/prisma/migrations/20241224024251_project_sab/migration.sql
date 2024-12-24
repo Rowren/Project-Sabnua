@@ -4,6 +4,7 @@ CREATE TABLE `User` (
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NULL,
     `name` VARCHAR(191) NULL,
+    `tell` VARCHAR(191) NULL,
     `picture` VARCHAR(191) NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'user',
     `enabled` BOOLEAN NOT NULL DEFAULT true,
@@ -92,7 +93,7 @@ CREATE TABLE `ProductOnCart` (
 -- CreateTable
 CREATE TABLE `Image` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `asset_id` VARCHAR(191) NOT NULL,
+    `asset_id` VARCHAR(191) NULL,
     `public_id` VARCHAR(191) NOT NULL,
     `url` VARCHAR(191) NOT NULL,
     `secure_url` VARCHAR(191) NOT NULL,

@@ -101,7 +101,7 @@ model ProductOnCart {
 
 model Image {
   id         Int      @id @default(autoincrement())
-  asset_id   String
+  asset_id   String?  // ต้องเป็น optional
   public_id  String
   url        String
   secure_url String
@@ -110,3 +110,4 @@ model Image {
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId  Int
 }
+
