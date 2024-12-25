@@ -13,13 +13,9 @@ export const createCategory = async (token, from) => {
 
 }
 
-export const listCategory = async (token) => {
+export const listCategory = async () => {
 
-    return await axios.get('http://localhost:5004/api/category', {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
+    return await axios.get('http://localhost:5004/api/category')
 
 }
 export const removeCategory = async (token, id) => {

@@ -12,8 +12,8 @@ const  category = useSabnuaStore((state) => state.categories)
 const getCategory = useSabnuaStore((state)=>state.getCategory)
 
   useEffect(() => {
-    getCategory(token);
-  }, [token]);
+    getCategory();
+  }, [getCategory]);
 
  
 
@@ -37,7 +37,7 @@ const getCategory = useSabnuaStore((state)=>state.getCategory)
         confirmButtonText: 'ตกลง',
       });
       setName(''); // รีเซ็ตฟอร์ม
-      getCategory(token); // เรียกข้อมูลใหม่หลังเพิ่มหมวดหมู่
+      getCategory(); // เรียกข้อมูลใหม่หลังเพิ่มหมวดหมู่
     } catch (err) {
       Swal.fire({
         title: 'ล้มเหลว!',

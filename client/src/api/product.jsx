@@ -17,15 +17,11 @@ export const createProduct = async (token, form) => {
 
 
 // ดึงรายการสินค้าตามจำนวนที่กำหนด
-export const listProduct = async (token, count = 20) => {
-    return await axios.get(`http://localhost:5004/api/products/${count}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+export const listProduct = async (count = 20) => {
+    return await axios.get(`http://localhost:5004/api/products/${count}`);
 };
 
-// 
+// ฟังก์ชันตรวจสรอบสินค้าตามid
 export const readProduct = async (token, id) => {
     return await axios.get(`http://localhost:5004/api/product/${id}`, {
         headers: {
@@ -33,6 +29,22 @@ export const readProduct = async (token, id) => {
         },
     });
 };
+
+// ฟังก์ชันลบสินค้า
+export const deleteProduct = async (token, id) => {
+    try {
+        const response = await axios.delete(`http://localhost:5004/api/product/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data; // ส่งผลลัพธ์กลับ
+    } catch (error) {
+        console.error("Error deleting product:", error.response?.data || error.message);
+        throw error; // โยนข้อผิดพลาดออกไป
+    }
+};
+
 
 // ฟังก์ชันอัพเดตข้อมูลสินค้า
 export const updateProduct = async (token, id, form) => {
@@ -77,3 +89,26 @@ export const removeFile = async (token, public_id) => {
         throw error; // ถ้ามีข้อผิดพลาดก็โยนออกไป
     }
 };
+
+
+// ฟังก์ชันค้นหาสินค้าตามฟิลเตอร์
+export const searchFilter = async ({ query, category }) => { // ลบ price ออกถ้าไม่ใช้
+    try {
+        const res = await axios.post("http://localhost:5004/api/search/filters", {
+            query,
+            category
+        });
+        console.log("Search result:", res.data);
+        return res;  // เพิ่ม return เพื่อให้ใช้ผลลัพธ์จากการค้นหาได้
+    } catch (error) {
+        console.error("Search error:", error.message);
+    }
+};
+
+
+  
+
+
+
+
+

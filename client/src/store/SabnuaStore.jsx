@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import axios from 'axios';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { listCategory } from "../api/Category";
-import { listProduct } from '../api/product';
+import { listProduct} from '../api/product';
+import { searchFilter } from '../api/product';
+
 
 const useSabnuaStore = create(
   persist(
@@ -31,9 +33,9 @@ const useSabnuaStore = create(
       },
 
       // ฟังก์ชัน getCategory
-      getCategory: async (token) => {
+      getCategory: async () => {
         try {
-          const res = await listCategory(token);
+          const res = await listCategory();
           set({ categories: res.data });
         } catch (err) {
           console.error('Fetch Categories Failed:', err.message);
@@ -41,14 +43,32 @@ const useSabnuaStore = create(
       },
 
       // ฟังก์ชัน getProduct
-      getProducts: async (token, count) => {
+      getProducts: async (count) => {
         try {
-          const res = await listProduct(token, count);
+          const res = await listProduct(count);
           set({ products: res.data });
         } catch (err) {
           console.error('Fetch Products Failed:', err.message);
         }
       },
+
+      // ฟังก์ชันค้นหาข้อมูลสินค้า
+      actionSearchFilters: async ({ query, category, price }) => {
+        try {
+          console.log("Calling search API with:", { query, category, price });
+          const res = await searchFilter({ query, category, price });
+          console.log("Search result:", res.data);  // ตรวจสอบผลลัพธ์
+          set({ products: res.data });  // อัพเดต state ใน store ด้วยผลลัพธ์การค้นหา
+        } catch (err) {
+          console.error("Search error:", err.message);
+        }
+      },
+    
+    
+      
+      
+      
+
     }),
     {
       name: 'sabnuaStore', // ชื่อ key ใน LocalStorage

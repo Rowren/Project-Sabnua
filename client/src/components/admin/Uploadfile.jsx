@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import Resize from 'react-image-file-resizer';
 import { removeFile, uploadFiles } from '../../api/product';
 import useSabnuaStore from '../../store/SabnuaStore';
+import { FaSpinner } from 'react-icons/fa'; // Import Spinner icon
 
 const Uploadfile = ({ form, setForm }) => {
     const token = useSabnuaStore((state) => state.token);
@@ -20,81 +21,94 @@ const Uploadfile = ({ form, setForm }) => {
     const handleOnChange = (e) => {
         const files = e.target.files;
         if (files) {
-            setLoading(true);
+            setLoading(true); // เริ่มการโหลด
             handleFilePreview(files); // แสดงตัวอย่างไฟล์
             let allFiles = [...form.images];
-
+    
             const processFiles = async () => {
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-
-                    // ตรวจสอบประเภทไฟล์
-                    if (!file.type.startsWith('image/')) {
-                        Swal.fire({
-                            title: 'ผิดพลาด!',
-                            text: `File "${file.name}" ไม่ใช่รูปภาพ!`,
-                            icon: 'error',
-                            confirmButtonText: 'ตกลง',
-                        });
-                        continue;
-                    }
-
-                    // ตรวจสอบขนาดไฟล์
-                    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-                    if (file.size > MAX_FILE_SIZE) {
-                        Swal.fire({
-                            title: 'ผิดพลาด!',
-                            text: `File "${file.name}" มีขนาดใหญ่เกินไป (สูงสุด 5MB)`,
-                            icon: 'error',
-                            confirmButtonText: 'ตกลง',
-                        });
-                        continue;
-                    }
-
-                    // Resize และอัปโหลดไฟล์
-                    Resize.imageFileResizer(
-                        file,
-                        360, // ความกว้าง
-                        360, // ความสูง
-                        'JPG',
-                        75, // คุณภาพ
-                        0, // หมุน
-                        async (data) => {
-                            try {
-                                const res = await uploadFiles(token, data); // อัปโหลด
-                                const newImage = {
-                                    url: res.data.url,
-                                    public_id: res.data.public_id,
-                                };
-                                allFiles.push(newImage);
-                                setForm({
-                                    ...form,
-                                    images: allFiles,
-                                });
-                                Swal.fire({
-                                    title: 'สำเร็จ!',
-                                    text: `อัปโหลดรูป "${file.name}" สำเร็จ!`,
-                                    icon: 'success',
-                                    confirmButtonText: 'ตกลง',
-                                });
-                            } catch (err) {
-                                Swal.fire({
-                                    title: 'ผิดพลาด!',
-                                    text: `ไม่สามารถอัปโหลดรูป "${file.name}" ได้`,
-                                    icon: 'error',
-                                    confirmButtonText: 'ตกลง',
-                                });
-                                console.error(err);
-                            }
-                        },
-                        'base64' // Output เป็น base64
-                    );
-                }
+                const promises = Array.from(files).map((file) => {
+                    return new Promise((resolve, reject) => {
+                        // ตรวจสอบประเภทไฟล์
+                        if (!file.type.startsWith('image/')) {
+                            Swal.fire({
+                                title: 'ผิดพลาด!',
+                                text: `File "${file.name}" ไม่ใช่รูปภาพ!`,
+                                icon: 'error',
+                                confirmButtonText: 'ตกลง',
+                            });
+                            return resolve(); // ยุติ Promise ของไฟล์นี้
+                        }
+    
+                        // ตรวจสอบขนาดไฟล์
+                        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+                        if (file.size > MAX_FILE_SIZE) {
+                            Swal.fire({
+                                title: 'ผิดพลาด!',
+                                text: `File "${file.name}" มีขนาดใหญ่เกินไป (สูงสุด 5MB)`,
+                                icon: 'error',
+                                confirmButtonText: 'ตกลง',
+                            });
+                            return resolve(); // ยุติ Promise ของไฟล์นี้
+                        }
+    
+                        // Resize และอัปโหลดไฟล์
+                        Resize.imageFileResizer(
+                            file,
+                            360, // ความกว้าง
+                            360, // ความสูง
+                            'JPG',
+                            75, // คุณภาพ
+                            0, // หมุน
+                            async (data) => {
+                                try {
+                                    const res = await uploadFiles(token, data); // อัปโหลด
+                                    const newImage = {
+                                        url: res.data.url,
+                                        public_id: res.data.public_id,
+                                    };
+                                    allFiles.push(newImage);
+                                    setForm({
+                                        ...form,
+                                        images: allFiles,
+                                    });
+    
+                                    // แสดง Swal สำเร็จ
+                                    await Swal.fire({
+                                        title: 'สำเร็จ!',
+                                        text: `อัปโหลดรูป "${file.name}" สำเร็จ!`,
+                                        icon: 'success',
+                                        confirmButtonText: 'ตกลง',
+                                    });
+    
+                                    resolve(); // บอกว่าไฟล์นี้เสร็จแล้ว
+                                } catch (err) {
+                                    // แสดง Swal หากอัปโหลดล้มเหลว
+                                    Swal.fire({
+                                        title: 'ผิดพลาด!',
+                                        text: `ไม่สามารถอัปโหลดรูป "${file.name}" ได้`,
+                                        icon: 'error',
+                                        confirmButtonText: 'ตกลง',
+                                    });
+                                    console.error(err);
+                                    reject(err); // แจ้งว่าไฟล์นี้ล้มเหลว
+                                }
+                            },
+                            'base64' // Output เป็น base64
+                        );
+                    });
+                });
+    
+                // รอให้ทุกไฟล์อัปโหลดเสร็จ
+                await Promise.allSettled(promises);
             };
-
-            processFiles().finally(() => setLoading(false)); // จบการทำงาน
+    
+            processFiles()
+                .finally(() => setLoading(false)) // จบการทำงาน
+                .catch((err) => console.error("Error uploading files:", err));
         }
     };
+    
+
 
     const handleDelete = async (public_id) => {
         if (!public_id) {
@@ -137,6 +151,7 @@ const Uploadfile = ({ form, setForm }) => {
     return (
         <div className='m-4'>
             <div className="image-gallery flex mx-auto gap-2 my-4">
+                
                 {/* แสดงภาพ */}
                 {form.images.map((image, index) => (
                     <div key={index} className="image-item relative">
@@ -170,16 +185,31 @@ const Uploadfile = ({ form, setForm }) => {
                 )}
             </div>
 
-            <div className="upload-section">
-                <input
-                    onChange={handleOnChange}
-                    type="file"
-                    name="images"
-                    multiple
-                    disabled={loading}
-                />
-                {loading && <p>กำลังอัปโหลดไฟล์...</p>}
+            <div className="upload-section relative">
+    <div className="relative">
+        <input
+            onChange={handleOnChange}
+            type="file"
+            name="images"
+            multiple
+            disabled={loading}
+            className="relative z-10 opacity-0 w-full h-full cursor-pointer"
+        />
+        <div
+            className={`absolute inset-0 flex items-center justify-center ${
+                loading ? "z-20" : "z-0"
+            }`}
+        >
+            {loading && <FaSpinner className="animate-spin text-blue-500 text-3xl" />}
+        </div>
+        {!loading && (
+            <div className="absolute inset-0 flex items-center justify-center z-0 bg-gray-200">
+                <p className="text-gray-600">เลือกรูปภาพ</p>
             </div>
+        )}
+    </div>
+</div>
+
         </div>
     );
 };

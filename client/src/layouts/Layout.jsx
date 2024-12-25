@@ -6,9 +6,8 @@ import Navbar from '../components/Navbar';
 const Layout = () => {
   return (
     <div>
-      <Navbar>
-
-      </Navbar>
+      <Navbar />
+      <main className='h-full p-4 mx-auto'></main>
       <Outlet />
     </div>
   )

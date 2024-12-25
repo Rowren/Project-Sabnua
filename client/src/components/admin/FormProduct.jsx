@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import useSabnuaStore from '../../store/SabnuaStore';
-import { createProduct } from '../../api/product';
+import { createProduct, deleteProduct } from '../../api/product';
 import Uploadfile from './Uploadfile';
 import { Link } from 'react-router-dom';
 import { FaEdit, FaTrash } from 'react-icons/fa';
@@ -26,9 +26,9 @@ const FormProduct = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        getCategory(token);
-        getProducts(token, 20); // โหลดรายการสินค้าจาก API
-    }, [getCategory, getProducts, token]);
+        getCategory();
+        getProducts(20);
+    }, [getCategory, getProducts]);
 
     const handleOnChange = (e) => {
         setForm({
@@ -51,9 +51,9 @@ const FormProduct = () => {
         }
 
         try {
-            const res = await createProduct(token, form)
-            setForm(initialState); // รีเซ็ตฟอร์ม
-            getProducts(token, 20); // รีโหลดรายการสินค้า
+            const res = await createProduct(token, form);
+            setForm(initialState);
+            getProducts( 20);
             Swal.fire({
                 title: 'สำเร็จ!',
                 text: `เพิ่มรายการอาหาร "${res.data.title}" สำเร็จ!`,
@@ -70,6 +70,44 @@ const FormProduct = () => {
             });
         }
     };
+
+    const handleDelete = async (id) => {
+        const confirmDelete = await Swal.fire({
+            title: 'คุณแน่ใจหรือไม่?',
+            text: "คุณต้องการลบรายการนี้หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก',
+        });
+
+        if (confirmDelete.isConfirmed) {
+            try {
+                // ลบข้อมูลสินค้าโดยใช้ API
+                const res = await deleteProduct(token, id); // ฟังก์ชัน deleteProduct ที่ต้องสร้างใน API
+
+                // อัปเดตรายการสินค้าใหม่
+                getProducts( 20);
+
+                Swal.fire({
+                    title: 'ลบสำเร็จ!',
+                    text: 'รายการอาหารถูกลบเรียบร้อยแล้ว!',
+                    icon: 'success',
+                    confirmButtonText: 'ตกลง',
+                });
+            } catch (err) {
+                console.error('Error deleting product:', err);
+
+                Swal.fire({
+                    title: 'ผิดพลาด!',
+                    text: 'ไม่สามารถลบรายการอาหารได้ กรุณาลองใหม่',
+                    icon: 'error',
+                    confirmButtonText: 'ตกลง',
+                });
+            }
+        }
+    };
+
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
@@ -130,7 +168,7 @@ const FormProduct = () => {
                         />
                     </div>
 
-                    <div className="col-span-2 sm:col-span-1">
+                    <div className="col-span-2">
                         <label className="block text-gray-700 font-bold mb-2">ประเภทอาหาร</label>
                         <select
                             value={form.categoryId}
@@ -150,9 +188,9 @@ const FormProduct = () => {
                         </select>
                     </div>
 
-                    <hr />
-                    {/* Upload file */}
-                    <Uploadfile form={form} setForm={setForm} />
+                    <div className="col-span-2">
+                        <Uploadfile form={form} setForm={setForm} />
+                    </div>
 
                     <button
                         type="submit"
@@ -166,69 +204,64 @@ const FormProduct = () => {
 
             <div className="mt-10 overflow-x-auto">
                 <h2 className="text-xl font-bold mb-4">รายการสินค้า</h2>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white border border-gray-300">
+                <table className="min-w-full bg-white border border-gray-300">
+                    <thead>
+                        <tr className="bg-gray-200 text-left">
+                            <th className="p-3">No.</th>
+                            <th className="p-3">รูปเมนู</th>
+                            <th className="p-3">ชื่อเมนู</th>
+                            <th className="p-3">รายละเอียด</th>
+                            <th className="p-3">ประเภทอาหาร</th>
+                            <th className="p-3">ราคา</th>
+                            <th className="p-3">จำนวน</th>
+                            <th className="p-3">จำนวนที่ขาย</th>
+                            <th className="p-3">วันที่อัปเดต</th>
+                            <th className="p-3">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {products?.map((product, index) => {
+                            const category = categories.find(category => category.id === product.categoryId);
+                            return (
+                                <tr key={index} className="border-t">
+                                    <td className="p-3">{index + 1}</td>
+                                    <td className="p-3">
+                                        {product.images.length > 0 ? (
+                                            <img
+                                                className="w-24 h-24 rounded-lg shadow-md"
+                                                src={product.images[0].url}
+                                                alt="product"
+                                            />
+                                        ) : (
+                                            <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center shadow-sm">
+                                                No Image
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="p-3">{product.title}</td>
+                                    <td className="p-3">{product.description}</td>
+                                    <td className="p-3">{category ? category.name : 'ไม่มีข้อมูล'}</td>
+                                    <td className="p-3">{product.price}</td>
+                                    <td className="p-3">{product.quantity}</td>
+                                    <td className="p-3">{product.sold}</td>
+                                    <td className="p-3">{product.updatedAt}</td>
+                                    <td className="p-3 text-center ">
+                                        <Link to={`/admin/product/${product.id}`} className="flex items-center gap-1 text-white bg-green-500 px-2 rounded-md shadow-md hover:text-yellow-500">
+                                            <FaEdit /> แก้ไข
+                                        </Link>
+                                        <p
+                                            onClick={() => handleDelete(product.id)}
+                                            className="flex items-center justify-center gap-1 text-white bg-red-600 hover:text-yellow-500 rounded-md shadow-md cursor-pointer mt-2"
+                                        >
+                                            <FaTrash /> ลบ
+                                        </p>
 
-                        <thead>
-                            <tr className="bg-gray-200 text-left">
-                                <th scope="col" className="p-3">No.</th>
-                                <th scope="col" className="p-3">รูปเมนู</th>
-                                <th scope="col" className="p-3">ชื่อเมนู</th>
-                                <th scope="col" className="p-3">รายละเอียด</th>
-                                <th scope="col" className="p-3">ประเภทอาหาร</th>
-                                <th scope="col" className="p-3">ราคา</th>
-                                <th scope="col" className="p-3">จำนวน</th>
-                                <th scope="col" className="p-3">จำนวนที่ขาย</th>
-                                <th scope="col" className="p-3">วันที่อัปเดต</th>
-                                <th scope="col" className="p-3">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-    {products?.map((product, index) => {
-        const category = categories.find(category => category.id === product.categoryId);
-        return (
-            <tr key={index} className="border-t">
-                <td className="p-3">{index + 1}</td>
-                <td>
-                    {product.images.length > 0 ? (
-                        <img
-                            className="w-24 h-24 rounded-lg shadow-md"
-                            src={product.images[0].url}
-                        />
-                    ) : (
-                        <div
-                            className="w-24 h-24 bg-gray-200 rounded-md 
-                            flex items-center justify-center shadow-sm"
-                        >
-                            No Image
-                        </div>
-                    )}
-                </td>
-                <td className="p-3">{product.title}</td>
-                <td className="p-3">{product.description}</td>
-                <td className="p-3">{category ? category.name : 'ไม่มีข้อมูล'}</td>
-                <td className="p-3">{product.price}</td>
-                <td className="p-3">{product.quantity}</td>
-                <td className="p-3">{product.sold}</td>
-                <td className="p-3">{product.updatedAt}</td>
-                <td className="p-3 text-center">
-                    <p className="flex items-center justify-center gap-1 bg-green-500 px-2 rounded-md shadow-md">
-                        <Link to={'/admin/product/' + product.id} className="text-white hover:text-yellow-500 flex items-center">
-                            <FaEdit /> แก้ไข
-                        </Link>
-                    </p>
-                    <p onClick={() => handleDelete(product.id)} className="flex items-center justify-center gap-1 text-white bg-red-600 hover:text-yellow-500 rounded-md shadow-md cursor-pointer mt-2">
-                        <FaTrash /> ลบ
-                    </p>
-                </td>
-            </tr>
-        );
-    })}
-</tbody>
-
-                    </table>
-
-                </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

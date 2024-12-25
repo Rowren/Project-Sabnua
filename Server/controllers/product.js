@@ -2,6 +2,12 @@ const { query } = require("express")
 const prisma = require("../Config/prisma")
 const  cloudinary  = require ("cloudinary").v2;
 
+// Configuration
+cloudinary.config({ 
+    cloud_name: process.env.CLOUDINART_CLOUD_NAME, 
+    api_key: process.env.CLOUDINART_API_KEY, 
+    api_secret: process.env.CLOUDINART_API_SECRET
+});
 
 exports.create = async (req, res) => {
     try {
@@ -37,7 +43,6 @@ exports.create = async (req, res) => {
     }
     
 }
-
 
 exports.list = async (req, res) => {
     try {
@@ -121,27 +126,53 @@ exports.update = async(req,res) => {
 }
 }
 
-exports.remove = async(req,res) => {
+exports.remove = async (req, res) => {
     try {
-        //code 
-        const{ id } = req.params
+        const { id } = req.params;
+        console.log('Deleting product with ID:', id);
 
-        //
+        if (isNaN(Number(id))) {
+            return res.status(400).json({ message: 'Invalid product ID' });
+        }
 
+        // Step 1: ค้นหาสินค้า
+        const product = await prisma.product.findFirst({
+            where: { id: Number(id) },
+            include: { images: true },
+        });
 
+        if (!product) {
+            console.log('Product not found');
+            return res.status(400).json({ message: 'Product not found!!!' });
+        }
+        console.log('Product found:', product);
+
+        // Step 2: ลบรูปภาพจาก Cloudinary
+        const deletedImage = product.images.map((image) =>
+            new Promise((resolve, reject) => {
+                console.log('Deleting image with public_id:', image.public_id);
+                cloudinary.uploader.destroy(image.public_id, (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                });
+            })
+        );
+        await Promise.all(deletedImage);
+        console.log('All images deleted from Cloudinary');
+
+        // Step 3: ลบสินค้า
         await prisma.product.delete({
-            where:{
-                id: Number(id)
-            }
-        })
+            where: { id: Number(id) },
+        });
+        console.log('Product deleted from database');
 
-
-        res.send("Delete Success")
+        res.send('Delete Success');
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: "Server Error" })
+        console.error('Error while deleting product:', err);
+        res.status(500).json({ message: 'Server Error' });
     }
-}
+};
+
 
 exports.listby = async(req,res) => {
     try {
@@ -208,7 +239,7 @@ const handlePrice = async (req, res, priceRange) => {
         console.log(err)
         res.status(500).json({ message: 'Server Error ' })
     }
-}   
+}
 const handleCategory = async (req, res, categoryId) => {
     try {
         const products = await prisma.product.findMany({
@@ -229,43 +260,63 @@ const handleCategory = async (req, res, categoryId) => {
     }
 }
 
-
-exports.searchFilters = async(req,res) => {
+exports.searchFilters = async (req, res) => {
     try {
-        //code 
-        const{ query, category, price } = req.body
+        const { query, category, price } = req.body;  // รับข้อมูลจาก req.body สำหรับ POST request
 
-        if(query){
-            console.log('Query -->',query)
-            await handleQuery(req,res,query)
-        }
-        if(category){
-            console.log('catagory -->',category)
-            await handleCategory(req,res,category)
+        let whereConditions = {};
 
-        }
-        if(price){
-            console.log('price -->',price)
-            await handlePrice(req,res,price)
-
+        // ค้นหาตาม query
+        if (query) {
+            console.log('query-->', query);
+            whereConditions.title = {
+                contains: query,
+            };
         }
 
+        // ค้นหาตาม category
+        if (category && category.length > 0) {
+            console.log('category-->', category);
+            whereConditions.categoryId = {
+                in: category.map((id) => Number(id)), // แปลงค่า id ของหมวดหมู่เป็นตัวเลข
+            };
+        }
 
-        // res.send("Search Filter Product")
+        // ค้นหาตาม price
+        if (price && price.length === 2) {
+            console.log('price-->', price);
+            whereConditions.price = {
+                gte: price[0], // ราคาต่ำสุด
+                lte: price[1], // ราคาสูงสุด
+            };
+        }
+
+        // ค้นหาสินค้าตามฟิลเตอร์ที่รวมกัน
+        const products = await prisma.product.findMany({
+            where: whereConditions,  // ใช้เงื่อนไขที่รวมกันทั้งหมด
+            include: {
+                category: true,
+                images: true,
+            }
+        });
+
+        // ส่งผลลัพธ์กลับไป
+        res.send(products);
+
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: "Server Error" })
+        console.log(err);
+        res.status(500).json({ message: "Server error" });
     }
-}
+};
 
 
 
-// Configuration
-cloudinary.config({ 
-    cloud_name: process.env.CLOUDINART_CLOUD_NAME, 
-    api_key: process.env.CLOUDINART_API_KEY, 
-    api_secret: process.env.CLOUDINART_API_SECRET
-});
+
+
+
+
+
+
 
 exports.createImages = async(req,res) => {
     try {

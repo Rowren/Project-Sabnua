@@ -1,11 +1,12 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+module.exports = {
+  content: ["./src/**/*.{js,jsx,ts,tsx}"], // ตรวจสอบให้ครอบคลุมไฟล์
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Prompt', 'sans-serif'], // ใช้ Prompt เป็นฟอนต์หลัก
+      },
+    },
   },
   plugins: [],
-}
+};

@@ -42,9 +42,9 @@ const FormEditProduct = () => {
     };
 
     useEffect(() => {
-        getCategory(token);  // ดึงข้อมูลประเภทสินค้า
+        getCategory();  // ดึงข้อมูลประเภทสินค้า
         fetchProduct(token, id);  // ดึงข้อมูลสินค้าจาก API
-    }, [getCategory, token, id]);
+    }, [getCategory, id]);
 
     // ฟังก์ชันเปลี่ยนแปลงข้อมูลในฟอร์ม
     const handleOnChange = (e) => {
@@ -87,97 +87,98 @@ const FormEditProduct = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
-            <div className="flex justify-center items-center">
-                <form
-                    onSubmit={handleOnSubmit}
-                    className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6"
-                >
-                    <h1 className="col-span-2 text-2xl font-bold mb-6 text-center text-red-600">
-                        แก้ไขรายการอาหาร
-                    </h1>
-
-                    <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-gray-700 font-bold mb-2">ชื่ออาหาร</label>
-                        <input
-                            type="text"
-                            value={form.title}
-                            onChange={handleOnChange}
-                            placeholder="ชื่ออาหาร"
-                            name="title"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        />
-                    </div>
-
-                    <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-gray-700 font-bold mb-2">รายละเอียด</label>
-                        <input
-                            type="text"
-                            value={form.description}
-                            onChange={handleOnChange}
-                            placeholder="รายละเอียด"
-                            name="description"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        />
-                    </div>
-
-                    <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-gray-700 font-bold mb-2">ราคา (บาท)</label>
-                        <input
-                            type="number"
-                            value={form.price}
-                            onChange={handleOnChange}
-                            placeholder="ราคา"
-                            name="price"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        />
-                    </div>
-
-                    <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-gray-700 font-bold mb-2">จำนวน</label>
-                        <input
-                            type="number"
-                            value={form.quantity}
-                            onChange={handleOnChange}
-                            placeholder="จำนวน"
-                            name="quantity"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        />
-                    </div>
-
-                    <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-gray-700 font-bold mb-2">ประเภทอาหาร</label>
-                        <select
-                            value={form.categoryId}
-                            onChange={handleOnChange}
-                            name="categoryId"
-                            required
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                            <option value="" disabled>
-                                กรุณาเลือก
-                            </option>
-                            {categories?.map((category, index) => (
-                                <option key={index} value={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <hr />
-                    {/* Upload file */}
-                    <Uploadfile form={form} setForm={setForm} />
-
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className={`col-span-2 ${isSubmitting ? 'bg-gray-500' : 'bg-green-600 hover:bg-red-700'} text-white py-3 rounded-lg font-bold transition`}
+        <div className="flex justify-center items-center">
+            <form
+                onSubmit={handleOnSubmit}
+                className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6"
+            >
+                <h1 className="col-span-2 text-2xl font-bold mb-6 text-center text-red-600">
+                    แก้ไขรายการอาหาร
+                </h1>
+    
+                <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-gray-700 font-bold mb-2">ชื่ออาหาร</label>
+                    <input
+                        type="text"
+                        value={form.title}
+                        onChange={handleOnChange}
+                        placeholder="ชื่ออาหาร"
+                        name="title"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                </div>
+    
+                <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-gray-700 font-bold mb-2">รายละเอียด</label>
+                    <input
+                        type="text"
+                        value={form.description}
+                        onChange={handleOnChange}
+                        placeholder="รายละเอียด"
+                        name="description"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                </div>
+    
+                <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-gray-700 font-bold mb-2">ราคา (บาท)</label>
+                    <input
+                        type="number"
+                        value={form.price}
+                        onChange={handleOnChange}
+                        placeholder="ราคา"
+                        name="price"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                </div>
+    
+                <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-gray-700 font-bold mb-2">จำนวน</label>
+                    <input
+                        type="number"
+                        value={form.quantity}
+                        onChange={handleOnChange}
+                        placeholder="จำนวน"
+                        name="quantity"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                </div>
+    
+                <div className="col-span-2 sm:col-span-1">
+                    <label className="block text-gray-700 font-bold mb-2">ประเภทอาหาร</label>
+                    <select
+                        value={form.categoryId}
+                        onChange={handleOnChange}
+                        name="categoryId"
+                        required
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
-                        {isSubmitting ? 'กำลังบันทึก...' : 'แก้ไขรายการอาหาร'}
-                    </button>
-                </form>
-            </div>
+                        <option value="" disabled>
+                            กรุณาเลือก
+                        </option>
+                        {categories?.map((category, index) => (
+                            <option key={index} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+    
+                <hr className="col-span-2" />
+                {/* Upload file */}
+                <Uploadfile form={form} setForm={setForm} />
+    
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`col-span-2 ${isSubmitting ? 'bg-gray-500' : 'bg-green-600 hover:bg-red-700'} text-white py-3 rounded-lg font-bold transition`}
+                >
+                    {isSubmitting ? 'กำลังบันทึก...' : 'แก้ไขรายการอาหาร'}
+                </button>
+            </form>
         </div>
+    </div>
+    
     );
 };
 
