@@ -205,63 +205,63 @@ const FormProduct = () => {
             <div className="mt-10 overflow-x-auto">
                 <h2 className="text-xl font-bold mb-4">รายการสินค้า</h2>
                 <table className="min-w-full bg-white border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-200 text-left">
-                            <th className="p-3">No.</th>
-                            <th className="p-3">รูปเมนู</th>
-                            <th className="p-3">ชื่อเมนู</th>
-                            <th className="p-3">รายละเอียด</th>
-                            <th className="p-3">ประเภทอาหาร</th>
-                            <th className="p-3">ราคา</th>
-                            <th className="p-3">จำนวน</th>
-                            <th className="p-3">จำนวนที่ขาย</th>
-                            <th className="p-3">วันที่อัปเดต</th>
-                            <th className="p-3">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products?.map((product, index) => {
-                            const category = categories.find(category => category.id === product.categoryId);
-                            return (
-                                <tr key={index} className="border-t">
-                                    <td className="p-3">{index + 1}</td>
-                                    <td className="p-3">
-                                        {product.images.length > 0 ? (
-                                            <img
-                                                className="w-24 h-24 rounded-lg shadow-md"
-                                                src={product.images[0].url}
-                                                alt="product"
-                                            />
-                                        ) : (
-                                            <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center shadow-sm">
-                                                No Image
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="p-3">{product.title}</td>
-                                    <td className="p-3">{product.description}</td>
-                                    <td className="p-3">{category ? category.name : 'ไม่มีข้อมูล'}</td>
-                                    <td className="p-3">{product.price}</td>
-                                    <td className="p-3">{product.quantity}</td>
-                                    <td className="p-3">{product.sold}</td>
-                                    <td className="p-3">{product.updatedAt}</td>
-                                    <td className="p-3 text-center ">
-                                        <Link to={`/admin/product/${product.id}`} className="flex items-center gap-1 text-white bg-green-500 px-2 rounded-md shadow-md hover:text-yellow-500">
-                                            <FaEdit /> แก้ไข
-                                        </Link>
-                                        <p
-                                            onClick={() => handleDelete(product.id)}
-                                            className="flex items-center justify-center gap-1 text-white bg-red-600 hover:text-yellow-500 rounded-md shadow-md cursor-pointer mt-2"
-                                        >
-                                            <FaTrash /> ลบ
-                                        </p>
+    <thead>
+        <tr className="bg-gray-200 text-left">
+            <th className="p-3">No.</th>
+            <th className="p-3">รูปเมนู</th>
+            <th className="p-3">ชื่อเมนู</th>
+            <th className="p-3">รายละเอียด</th>
+            <th className="p-3">ประเภทอาหาร</th>
+            <th className="p-3">ราคา</th>
+            <th className="p-3">จำนวน</th>
+            <th className="p-3">จำนวนที่ขาย</th>
+            <th className="p-3">วันที่อัปเดต</th>
+            <th className="p-3">จัดการ</th>
+        </tr>
+    </thead>
+    <tbody>
+        {products?.map((product, index) => {
+            const category = categories.find(category => category.id === product.categoryId);
+            return (
+                <tr key={index} className="border-t">
+                    <td className="p-3">{index + 1}</td>
+                    <td className="p-3 hover:scale-125">
+                        {product.images.length > 0 ? (
+                            <img
+                                className="w-24 h-24 max-w-full max-h-24 object-cover rounded-lg shadow-md"
+                                src={product.images[0].url}
+                                alt="product"
+                            />
+                        ) : (
+                            <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center shadow-sm">
+                                No Image
+                            </div>
+                        )}
+                    </td>
+                    <td className="p-3">{product.title}</td>
+                    <td className="p-3">{product.description}</td>
+                    <td className="p-3">{category ? category.name : 'ไม่มีข้อมูล'}</td>
+                    <td className="p-3">{product.price}</td>
+                    <td className="p-3">{product.quantity}</td>
+                    <td className="p-3">{product.sold}</td>
+                    <td className="p-3">{product.updatedAt}</td>
+                    <td className="p-3 text-center">
+                        <Link to={`/admin/product/${product.id}`} className="flex items-center gap-1 text-white bg-green-500 px-2 rounded-md shadow-md hover:text-yellow-500">
+                            <FaEdit /> แก้ไข
+                        </Link>
+                        <p
+                            onClick={() => handleDelete(product.id)}
+                            className="flex items-center justify-center gap-1 text-white bg-red-600 hover:text-yellow-500 rounded-md shadow-md cursor-pointer mt-2"
+                        >
+                            <FaTrash /> ลบ
+                        </p>
+                    </td>
+                </tr>
+            );
+        })}
+    </tbody>
+</table>
 
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
             </div>
         </div>
     );

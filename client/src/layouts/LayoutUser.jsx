@@ -1,10 +1,13 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+
 
 const LayoutUser = () => {
   return (
     <div>
-      <h1>Nav</h1>
+      <Navbar />
+      <main className='h-full p-4 mx-auto'></main>
       <Outlet />
     </div>
   )

@@ -53,6 +53,7 @@ exports.ChangeRole = async (req, res) => {
     res.status(500).json({ message: " Sever Error" });
   }
 };
+
 exports.userCart = async (req, res) => {
   try {
     //code
@@ -64,6 +65,25 @@ exports.userCart = async (req, res) => {
       where: { id: Number(req.user.id) },
     });
     //console.log(user)
+
+    //Check quantity
+    for (const item of cart) {
+      console.log(item);
+      const product = await prisma.product.findUnique({
+        where: { id: item.id },
+        select: { quantity: true, title: true },
+      });
+      // console.log(item)
+      // console.log(product)
+
+      //ถ้าไม่มีสินค้า
+      if (!product || item.count >= product.quantity) {
+        return res.status(400).json({
+          ok: false,
+          message: `ขออภัย. สินค้า${product?.title || "product"}หมด`,
+        });
+      }
+    }
 
     // Delete old Cart Item
     await prisma.productOnCart.deleteMany({
@@ -112,6 +132,7 @@ exports.userCart = async (req, res) => {
     res.status(500).json({ message: " Sever Error" });
   }
 };
+
 exports.getUserCart = async (req, res) => {
   try {
     //code
@@ -141,6 +162,7 @@ exports.getUserCart = async (req, res) => {
     res.status(500).json({ message: " Sever Error" });
   }
 };
+
 exports.emptyCart = async (req, res) => {
   try {
     //code
@@ -172,6 +194,7 @@ exports.emptyCart = async (req, res) => {
     res.status(500).json({ message: " Sever Error" });
   }
 };
+
 exports.saveAddress = async (req, res) => {
   try {
     //code
@@ -193,15 +216,27 @@ exports.saveAddress = async (req, res) => {
     res.status(500).json({ message: " Sever Error" });
   }
 };
+
 exports.saveOrder = async (req, res) => {
   try {
     //code
+    // Step 0 Check Stripe
+    console.log("Request Body:", req.body); // Debugging
+
+    // ตรวจสอบว่า payload และ paymentIntent มีอยู่หรือไม่
+    if (!req.body.payload || !req.body.payload.paymentIntent) {
+      return res.status(400).json({ error: 'Missing paymentIntent in request body payload' });
+    }
+
+    // ดึงข้อมูลจาก paymentIntent
+    const { id, amount, status, currency } = req.body.payload.paymentIntent;
+
     //Step 1 Get User Cart
-    const userCart = await prisma.cart.findFirst({
+   const userCart = await prisma.cart.findFirst({
       where: {
         orderedById: Number(req.user.id),
       },
-      include: { products: true }, //get detail product
+      include: { products: true }, // ดึงรายละเอียดสินค้า
     });
 
     //Check Cart Empty
@@ -212,26 +247,9 @@ exports.saveOrder = async (req, res) => {
       });
     }
 
-    //Check quantity
-    for (const item of userCart.products) {
-      console.log(item);
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { quantity: true, title: true },
-      });
-      // console.log(item)
-      // console.log(product)
+    const amountTHB = Number(amount) / 100
 
-      //ถ้าไม่มีสินค้า
-      if (!product || item.count >= product.quantity) {
-        return res.status(400).json({
-          ok: false,
-          message: `ขออภัย. สินค้า${product?.title || "product"}หมด`,
-        });
-      }
-    }
-
-    // Create New Order
+    // สร้าง order
     const order = await prisma.order.create({
       data: {
         products: {
@@ -245,33 +263,36 @@ exports.saveOrder = async (req, res) => {
           connect: { id: req.user.id },
         },
         cartTotal: userCart.cartTotal,
+        stripePaymentId: id,
+        amount: amountTHB,
+        status: status,
+        currency: currency,
       },
     });
 
-    // Update Product
-    const update = userCart.products.map((item) => ({
+
+     // อัปเดตสินค้าคงคลัง
+     const update = userCart.products.map((item) => ({
       where: { id: item.productId },
       data: {
         quantity: { decrement: item.count },
         sold: { increment: item.count },
       },
     }));
-    console.log(update);
-
-    // update all
     await Promise.all(update.map((updated) => prisma.product.update(updated)));
 
+    // ลบ cart หลังจากสร้าง order
     await prisma.cart.deleteMany({
       where: { orderedById: Number(req.user.id) },
     });
 
     res.json({ ok: true, order });
   } catch (err) {
-    //error
-    console.log(err);
-    res.status(500).json({ message: " Sever Error" });
+    console.error('Error in saveOrder:', err); // Log ข้อผิดพลาด
+    res.status(500).json({ message: "Server Error" });
   }
 };
+
 exports.getOrder = async (req, res) => {
   try {
     //code

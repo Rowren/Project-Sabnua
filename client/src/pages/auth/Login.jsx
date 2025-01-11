@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import useSabnuaStore from '../../store/sabnuaStore';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import useSabnuaStore from '../../store/SabnuaStore';
 
 const Login = () => {
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { actionLogin } = useSabnuaStore();  // เรียกใช้ actionLogin จาก store
-  const user = useSabnuaStore((state) => state.user)
-  console.log('user zustand', user)
+  const user = useSabnuaStore((state) => state.user);
+  console.log('user zustand', user);
 
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false); // ใช้ในการ toggle การแสดงรหัสผ่าน
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,8 +24,8 @@ const Login = () => {
     try {
       // เรียกใช้ actionLogin และรอผลลัพธ์
       const res = await actionLogin(formData.email, formData.password); 
-      const role = res.data.payload.role
-      roleRedirect(role)
+      const role = res.data.payload.role;
+      roleRedirect(role);
 
       // ถ้าการ login สำเร็จ
       Swal.fire({
@@ -45,19 +46,19 @@ const Login = () => {
 
   const roleRedirect = (role) => {
     if(role === 'admin'){
-      navigate('/admin')
+      navigate('/admin');
     }else{
-      navigate('/user')
+      navigate(-1);
     }
-  }
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-center text-orange-500 mb-6">
+      <div className="w-full max-w-xl bg-white shadow-xl rounded-lg p-10">
+        <h2 className="text-3xl font-bold text-center text-orange-500 mb-8">
           เข้าสู่ระบบ
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="block font-medium text-gray-700">
               อีเมล
@@ -65,7 +66,7 @@ const Login = () => {
             <input
               type="email"
               name="email"
-              className="w-full p-3 border rounded-md focus:ring-2 focus:ring-orange-500"
+              className="w-full p-4 border rounded-md focus:ring-2 focus:ring-orange-500"
               value={formData.email}
               onChange={handleChange}
               placeholder="example@example.com"
@@ -74,21 +75,27 @@ const Login = () => {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block font-medium text-gray-700">
               รหัสผ่าน
             </label>
-            <input
-              type="password"
-              name="password"
-              className="w-full p-3 border rounded-md focus:ring-2 focus:ring-orange-500"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="********"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                className="w-full p-4 border rounded-md focus:ring-2 focus:ring-orange-500"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="********"
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? 'ซ่อน' : 'แสดง'}
+              </button>
+            </div>
           </div>
 
           <div>

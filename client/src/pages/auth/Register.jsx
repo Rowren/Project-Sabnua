@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import Logo from '../../assets/images/LogoSabnua.png'; // นำเข้ารูปภาพ
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -76,16 +78,17 @@ const Register = () => {
         {/* โลโก้และชื่อร้าน */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
+
             <img 
-              src="/images/food-logo.png" 
-              alt="Logo" 
-              className="h-16 w-16 rounded-full border-4 border-yellow-400" 
+              src={Logo}
+              alt="logo"
+              className="h-20 w-28  rounded-full border-4 border-yellow-300 "
             />
           </div>
           <h1 className="text-3xl font-bold text-orange-500 ">
             สมัครสมาชิกแซ่บนัวครัวยินดี
           </h1>
-          
+
         </div>
 
         {/* ฟอร์มการลงทะเบียน */}
@@ -93,26 +96,26 @@ const Register = () => {
           {/* ชื่อ */}
           <div>
             <label htmlFor="name" className="block text-lg font-medium text-gray-700">ชื่อ</label>
-            <input 
+            <input
               className="border p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              name="name" 
-              type="text" 
+              name="name"
+              type="text"
               value={formData.name}
               onChange={handleChange}
-              required 
+              required
             />
           </div>
 
           {/* อีเมล */}
           <div>
             <label htmlFor="email" className="block text-lg font-medium text-gray-700">อีเมล</label>
-            <input 
+            <input
               className="border p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              name="email" 
-              type="email" 
+              name="email"
+              type="email"
               value={formData.email}
               onChange={handleChange}
-              required 
+              required
             />
           </div>
 
@@ -120,16 +123,16 @@ const Register = () => {
           <div>
             <label htmlFor="password" className="block text-lg font-medium text-gray-700">รหัสผ่าน</label>
             <div className="relative">
-              <input 
+              <input
                 className="border p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                name="password" 
+                name="password"
                 type={showPassword ? "text" : "password"}  // toggle the password visibility
                 value={formData.password}
                 onChange={handleChange}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="absolute right-3 top-3 text-gray-500"
                 onClick={toggleShowPassword} // Toggle password visibility
               >
@@ -142,16 +145,16 @@ const Register = () => {
           <div>
             <label htmlFor="confirmPassword" className="block text-lg font-medium text-gray-700">ยืนยันรหัสผ่าน</label>
             <div className="relative">
-              <input 
+              <input
                 className="border p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                name="confirmPassword" 
+                name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}  // toggle the confirm password visibility
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                required 
+                required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="absolute right-3 top-3 text-gray-500"
                 onClick={toggleShowConfirmPassword} // Toggle confirm password visibility
               >
@@ -163,14 +166,14 @@ const Register = () => {
           {/* เบอร์โทรศัพท์ */}
           <div>
             <label htmlFor="tell" className="block text-lg font-medium text-gray-700">เบอร์โทรศัพท์</label>
-            <input 
+            <input
               className="border p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              name="tell" 
-              type="tel" 
+              name="tell"
+              type="tel"
               value={formData.tell}
               onChange={handleChange}
-              placeholder="xxx-xxx-xxxx" 
-              required 
+              placeholder="xxx-xxx-xxxx"
+              required
             />
           </div>
 
@@ -179,8 +182,8 @@ const Register = () => {
 
           {/* ปุ่มส่งข้อมูล */}
           <div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="w-full bg-orange-500 text-white py-3 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               ลงทะเบียน
