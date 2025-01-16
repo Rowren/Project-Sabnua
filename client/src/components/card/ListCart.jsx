@@ -92,19 +92,29 @@ const ListCart = () => {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <button
-                            onClick={user ? handleSaveCart : () => navigate('/login')}
-                            className={`w-full rounded-md text-white p-1.5 shadow-md ${
-                                loading
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : user
-                                    ? 'bg-green-600 hover:bg-green-800'
-                                    : 'bg-blue-600 hover:bg-blue-800'
-                            }`}
-                            disabled={loading}
-                        >
-                            {user ? 'สั่งซื้อ' : 'เข้าสู่ระบบ'}
-                        </button>
+                    <button
+  onClick={() => {
+    if (user) {
+        console.log('User is logged in:', user);
+        handleSaveCart();
+      } else {
+        console.log('User is not logged in. Redirecting to login...');
+        navigate('/login');
+      }
+  }}
+  className={`w-full rounded-md text-white p-1.5 shadow-md ${
+    loading
+      ? 'bg-gray-400 cursor-not-allowed'
+      : user
+      ? 'bg-green-600 hover:bg-green-800'
+      : 'bg-blue-600 hover:bg-blue-800'
+  }`}
+  disabled={loading}
+>
+  {user ? 'สั่งซื้อ' : 'เข้าสู่ระบบ'}
+</button>
+
+
 
                         <button
                             onClick={() => navigate('/Menu')}

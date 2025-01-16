@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import axios from 'axios';
 import Logo from '../../assets/images/LogoSabnua.png'; // นำเข้ารูปภาพ
-
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +15,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);  // State for showing password
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State for showing confirm password
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,17 +47,28 @@ const Register = () => {
       });
     } else {
       setError('');
-      Swal.fire({
-        icon: 'success',
-        title: 'ลงทะเบียนสำเร็จ!',
-        text: 'คุณได้ลงทะเบียนเป็นสมาชิกแล้ว'
-      });
-      console.log('ลงทะเบียนสำเร็จ', formData);
-
-      // Sending the data via axios to the server
       try {
         const res = await axios.post('http://localhost:5004/api/register', formData);
         console.log(res);
+
+        // แจ้งเตือนและนำไปยังหน้า Login
+        Swal.fire({
+          icon: 'success',
+          title: 'ลงทะเบียนสำเร็จ!',
+          text: 'คุณได้ลงทะเบียนเป็นสมาชิกแล้ว'
+        });
+
+        // เคลียร์ฟอร์ม
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          tell: ''
+        });
+
+        // นำไปหน้า Login
+        navigate('/login');
       } catch (err) {
         console.error('Error:', err);
         Swal.fire({
@@ -78,17 +90,15 @@ const Register = () => {
         {/* โลโก้และชื่อร้าน */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-
             <img 
               src={Logo}
               alt="logo"
-              className="h-20 w-28  rounded-full border-4 border-yellow-300 "
+              className="h-20 w-28 rounded-full border-4 border-yellow-300 "
             />
           </div>
           <h1 className="text-3xl font-bold text-orange-500 ">
             สมัครสมาชิกแซ่บนัวครัวยินดี
           </h1>
-
         </div>
 
         {/* ฟอร์มการลงทะเบียน */}
@@ -193,6 +203,6 @@ const Register = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Register;

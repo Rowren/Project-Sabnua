@@ -86,7 +86,7 @@ const FormEditProduct = () => {
 
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
+        <div className="container mx-auto p-4 bg-white shadow-md rounded-lg">
         <div className="flex justify-center items-center">
             <form
                 onSubmit={handleOnSubmit}

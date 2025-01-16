@@ -10,5 +10,5 @@
 }
 
 body {
-  @apply font-sans; /* ใช้ฟอนต์จาก Tailwind */
+  @apply font-sans;
 }

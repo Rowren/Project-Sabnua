@@ -295,8 +295,8 @@ exports.saveOrder = async (req, res) => {
 
 exports.getOrder = async (req, res) => {
   try {
-    //code
-    const orders = await prisma.order.findFirst({
+    // ดึงคำสั่งซื้อทั้งหมดของผู้ใช้
+    const orders = await prisma.order.findMany({
       where: { orderedById: Number(req.user.id) },
       include: {
         products: {
@@ -306,15 +306,15 @@ exports.getOrder = async (req, res) => {
         },
       },
     });
-    if(orders.length === 0){
-      res.status(400).json({ok: false,message:" No Order"})
+
+    if (!orders || orders.length === 0) {
+      return res.status(400).json({ ok: false, message: "No Order" });
     }
 
-    console.log(orders);
-    res.json({ok: true,orders});
+    console.log(orders); // ตรวจสอบข้อมูลใน console
+    res.json({ ok: true, orders });
   } catch (err) {
-    //error
-    console.log(err);
-    res.status(500).json({ message: " Sever Error" });
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
   }
 };

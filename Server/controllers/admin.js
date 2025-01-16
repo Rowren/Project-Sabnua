@@ -34,6 +34,7 @@ exports.getOrderAdmin = async (req,res) => {
                         id:true,
                         email:true,
                         address:true,
+                        tell:true,
                         
                     }
                 }

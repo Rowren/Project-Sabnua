@@ -55,3 +55,18 @@ export const saveOrder= async (token, payload) => {
         throw error; 
     }
 };
+export const getOrder = async (token) => {
+    try {
+        console.log("Token being sent:", token); // ตรวจสอบ token
+        const res = await axios.get('http://localhost:5004/api/user/order', {
+            headers: {
+                Authorization: `Bearer ${token}`, // ตรวจสอบ Authorization header
+            },
+        });
+        console.log("API Response Data:", res.data); // ตรวจสอบการตอบกลับของ API
+        return res;
+    } catch (error) {
+        console.error("API Error:", error.response?.data || error.message); // ตรวจสอบข้อผิดพลาดจาก API
+        throw error;
+    }
+};

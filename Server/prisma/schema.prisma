@@ -50,7 +50,7 @@ model Order {
   id              Int              @id @default(autoincrement())
   products        ProductOnOrder[] // ความสัมพันธ์กับตาราง ProductOnOrder
   cartTotal       Float
-  orderStatus     String           @default("Not Process")
+  orderStatus     String           @default("รอดำเนินการ")
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   orderedBy       User             @relation(fields: [orderedById], references: [id])

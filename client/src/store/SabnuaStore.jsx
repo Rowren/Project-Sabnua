@@ -20,12 +20,14 @@ const useSabnuaStore = create(
         try {
           const res = await axios.post('http://localhost:5004/api/login', { email, password });
           set({ user: res.data.payload, token: res.data.token });
+          console.log('Login successful. User:', res.data.payload);
           return res;
         } catch (err) {
           console.error('Login Failed:', err.message);
-          throw new Error('Invalid login credentials'); // ส่ง Error กลับไปที่ component
+          throw new Error('Invalid login credentials');
         }
       },
+      
       
 
       // ฟังก์ชัน Logout
@@ -140,12 +142,13 @@ const useSabnuaStore = create(
 
     }),
     {
-      name: 'sabnuaStore',
-      storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => (state) => {
-        console.log('Store rehydrated:', state)
+      name: 'sabnuaStore', // ชื่อของ store ที่เก็บใน localStorage
+      storage: createJSONStorage(() => localStorage), // ใช้ localStorage สำหรับการจัดเก็บ
+      onRehydrateStorage: () => (state) => { // ฟังก์ชัน callback เมื่อ rehydrate
+        console.log('Store rehydrated:', state);
+      }
     }
-  }
+    
   )
 );
 

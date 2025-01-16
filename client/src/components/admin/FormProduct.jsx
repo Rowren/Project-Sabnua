@@ -110,8 +110,7 @@ const FormProduct = () => {
 
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <div className="flex justify-center items-center">
+<div className="container mx-auto p-4 bg-white shadow-md rounded-lg">            <div className="flex justify-center items-center">
                 <form
                     onSubmit={handleOnSubmit}
                     className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6"

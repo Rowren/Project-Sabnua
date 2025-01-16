@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Logo from '../assets/images/LogoSabnua.png'; // นำเข้ารูปภาพ
-import useSabnuaStore from '../store/SabnuaStore';
-import { FaHome, FaUtensils, FaShoppingCart, FaUserPlus, FaSignInAlt } from 'react-icons/fa'; // ไอคอนที่ใช้
+import Logo from '../assets/images/LogoSabnua.png';
+import { FaHome, FaUtensils, FaShoppingCart, FaUserPlus, FaSignInAlt } from 'react-icons/fa';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +10,6 @@ const Navbar = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
-    const carts = useSabnuaStore((s) => s.carts);
 
     return (
         <nav className="bg-red-600 shadow-lg">
@@ -32,16 +30,15 @@ const Navbar = () => {
                     {/* Menu Links for Desktop */}
                     <div className="hidden md:flex items-center gap-8 text-lg font-medium">
                         <Link to="/" className="text-white hover:text-yellow-400 transition duration-300 flex items-center gap-2">
-                            <FaHome className="text-xl" /> {/* ปรับขนาดไอคอน */}
+                            <FaHome className="text-xl" />
                             หน้าแรก
                         </Link>
                         <Link to="/menu" className="text-white hover:text-yellow-400 transition duration-300 flex items-center gap-2">
-                            <FaUtensils className="text-xl" /> {/* ปรับขนาดไอคอน */}
+                            <FaUtensils className="text-xl" />
                             เมนู
                         </Link>
-                        {/* Badge */}
                         <Link to="/cart" className="text-white hover:text-yellow-400 transition duration-300 flex items-center gap-2">
-                            <FaShoppingCart className="text-xl" /> {/* ปรับขนาดไอคอน */}
+                            <FaShoppingCart className="text-xl" />
                             รายการอาหาร
                         </Link>
                     </div>
@@ -49,11 +46,11 @@ const Navbar = () => {
                     {/* Action Buttons */}
                     <div className="hidden md:flex items-center gap-4">
                         <Link to="/register" className="text-white bg-yellow-400 px-4 py-2 rounded-lg hover:bg-yellow-500 transition duration-300 flex items-center gap-2">
-                            <FaUserPlus className="text-xl" /> {/* ปรับขนาดไอคอน */}
+                            <FaUserPlus className="text-xl" />
                             สมัครสมาชิก
                         </Link>
                         <Link to="/login" className="text-white border border-white px-4 py-2 rounded-lg hover:bg-red-700 hover:text-yellow-400 transition duration-300 flex items-center gap-2">
-                            <FaSignInAlt className="text-xl" /> {/* ปรับขนาดไอคอน */}
+                            <FaSignInAlt className="text-xl" />
                             เข้าสู่ระบบ
                         </Link>
                     </div>
@@ -67,32 +64,34 @@ const Navbar = () => {
                 </div>
 
                 {/* Mobile Menu */}
-                <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} bg-red-600 py-4`}>
-                    <div className="flex flex-col items-center gap-4">
-                        <Link to="/" className="text-lg font-medium text-yellow-400 hover:text-yellow-500 transition duration-300 flex items-center gap-2">
-                            <FaHome className="text-xl" /> {/* ปรับขนาดไอคอน */}
-                            หน้าแรก
-                        </Link>
-                        <Link to="/menu" className="text-lg font-medium text-yellow-400 hover:text-yellow-500 transition duration-300 flex items-center gap-2">
-                            <FaUtensils className="text-xl" /> {/* ปรับขนาดไอคอน */}
-                            เมนู
-                        </Link>
-                        <Link to="/cart" className="text-lg font-medium text-yellow-400 hover:text-yellow-500 transition duration-300 flex items-center gap-2">
-                            <FaShoppingCart className="text-xl" /> {/* ปรับขนาดไอคอน */}
-                            รายการอาหาร
-                        </Link>
-                        <div className="flex flex-col items-center gap-4 mt-4">
-                            <Link to="/register" className="text-white bg-yellow-400 px-4 py-2 rounded-lg hover:bg-yellow-500 transition duration-300 flex items-center gap-2">
-                                <FaUserPlus className="text-xl" /> {/* ปรับขนาดไอคอน */}
-                                สมัครสมาชิก
+                {isMenuOpen && (
+                    <div className="md:hidden bg-red-600 py-4">
+                        <div className="flex flex-col items-center gap-4">
+                            <Link to="/" className="text-lg font-medium text-yellow-400 hover:text-yellow-500 transition duration-300 flex items-center gap-2">
+                                <FaHome className="text-xl" />
+                                หน้าแรก
                             </Link>
-                            <Link to="/login" className="text-white border border-white px-4 py-2 rounded-lg hover:bg-red-700 hover:text-yellow-400 transition duration-300 flex items-center gap-2">
-                                <FaSignInAlt className="text-xl" /> {/* ปรับขนาดไอคอน */}
-                                เข้าสู่ระบบ
+                            <Link to="/menu" className="text-lg font-medium text-yellow-400 hover:text-yellow-500 transition duration-300 flex items-center gap-2">
+                                <FaUtensils className="text-xl" />
+                                เมนู
                             </Link>
+                            <Link to="/cart" className="text-lg font-medium text-yellow-400 hover:text-yellow-500 transition duration-300 flex items-center gap-2">
+                                <FaShoppingCart className="text-xl" />
+                                รายการอาหาร
+                            </Link>
+                            <div className="flex flex-col items-center gap-4 mt-4">
+                                <Link to="/register" className="text-white bg-yellow-400 px-4 py-2 rounded-lg hover:bg-yellow-500 transition duration-300 flex items-center gap-2">
+                                    <FaUserPlus className="text-xl" />
+                                    สมัครสมาชิก
+                                </Link>
+                                <Link to="/login" className="text-white border border-white px-4 py-2 rounded-lg hover:bg-red-700 hover:text-yellow-400 transition duration-300 flex items-center gap-2">
+                                    <FaSignInAlt className="text-xl" />
+                                    เข้าสู่ระบบ
+                                </Link>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
         </nav>
     );
