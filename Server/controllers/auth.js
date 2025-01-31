@@ -1,11 +1,11 @@
-const prisma = require('../Config/prisma')
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
-const { token } = require('morgan')
+const prisma = require('../Config/prisma');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
+// ฟังก์ชันลงทะเบียน
 exports.register = async (req, res) => {
     try {
-        const { email, password, name, tell } = req.body;
+        const { email, password, name, tell, image } = req.body;
 
         // Step 1: Validate body
         if (!email) {
@@ -22,37 +22,48 @@ exports.register = async (req, res) => {
         }
 
         // Step 2: Check if email already exists in DB
-        const user = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findFirst({
             where: {
-                email: email
-            }
+                email: email,
+            },
         });
-        if (user) {
-            return res.status(400).json({ message: "Email already exists!!" });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Email already exists!!' });
         }
 
         // Step 3: Hash the password
         const hashPassword = await bcrypt.hash(password, 10);
 
-        // Step 4: Register the user in the database
-        await prisma.user.create({
+      
+
+
+        // Step 5: Register the user in the database
+        const newUser = await prisma.user.create({
             data: {
                 email: email,
                 password: hashPassword,
                 name: name,
-                tell: tell
-            }
+                tell: tell,
+            },
         });
 
-        res.send('Register Success');
+        res.status(201).json({
+            message: 'Register Success',
+            user: {
+                id: newUser.id,
+                email: newUser.email,
+                name: newUser.name,
+           
+            },
+        });
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Server Error" });
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
     }
 };
 
-
-exports.login =  async (req,res) => {
+// ฟังก์ชันล็อกอิน
+exports.login = async (req, res) => {
     try {
         //code
         const { email, password } = req.body
@@ -65,55 +76,52 @@ exports.login =  async (req,res) => {
         if (!user || !user.enabled) {
             return res.status(400).json({ message: 'User Not found or not Enabled' })
         }
-        //step 2 Check Password
-        const isMatch = await bcrypt.compare(password,user.password)
-        if(!isMatch){
-            return res.status(500).json({message: "Password Invalid!!!"})
+        // Step 2 Check password
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Password Invalid!!!' })
         }
-        //step 3 Create Payload
-        const payload ={
+        // Step 3 Create Payload
+        const payload = {
             id: user.id,
             email: user.email,
             role: user.role
-
         }
-        //step 4 Generate Token
-        jwt.sign(payload,process.env.SECRET,{
-            expiresIn: '1h'
-        },(err,token) =>{
-            if(err){
-                return res.status(500).json({ message:"Server Error"})
+        // Step 4 Generate Token
+        jwt.sign(payload, process.env.SECRET, { expiresIn: '1d' }, (err, token) => {
+            if (err) {
+                return res.status(500).json({ message: "Server Error" })
             }
-            res.json({payload, token})
-        })
+            res.json({ payload, token })
 
+        })
     } catch (err) {
-        //err
+        // err
         console.log(err)
         res.status(500).json({ message: "Server Error" })
     }
 }
 
-exports.currentUser = async(req,res) => {
+exports.currentUser = async (req, res) => {
     try {
         //code
         const user = await prisma.user.findFirst({
-            where:{email: req.user.email},
-            select:{
-                id:true,
-                email:true,
-                name:true,
-                role:true
+            where: { email: req.user.email },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true
             }
         })
-        res.json({user})
-
+        res.json({ user })
     } catch (err) {
         //err
         console.log(err)
-        res.status(500).json({ message: "Server Error" })
+        res.status(500).json({ message: 'Server Error' })
     }
 }
 
 
- 
+
+

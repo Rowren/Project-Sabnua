@@ -20,6 +20,8 @@ import ProtectRouteAdmin from './ProtectRouteAdmin';
 import EditProduct from '../pages/admin/EditProduct';
 import Payment from '../pages/user/Payment';
 import ManageOrders from '../pages/admin/ManageOrders';
+import EditUser from '../pages/admin/EditUser';
+import EditProfile from '../pages/user/EditProfile';
 
 const router = createBrowserRouter([
   {
@@ -44,20 +46,23 @@ const router = createBrowserRouter([
       { path: 'product', element: <Product /> },
       { path: 'product/:id', element: <EditProduct /> },
       { path: 'manage', element: <Manage /> },
+      { path: 'user/:id', element: <EditUser /> },
       { path: 'orders', element: <ManageOrders /> },
     ],
   },
   {
     path: '/user',
-    // element: <LayoutUser />,
     element: <ProtectRouteUser element={<LayoutUser />} />,
     children: [
       { index: true, element: <HomeUser /> },
       { path: 'payment', element: <Payment /> },
       { path: 'history', element: <History /> },
-      
+      { path: 'update/:id', element: <EditProfile /> },
     ],
-  },
+  }
+  
+
+  
 
 ]);
 

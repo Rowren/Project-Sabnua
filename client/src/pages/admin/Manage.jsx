@@ -1,11 +1,11 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import ListUserManages from '../../components/admin/ListUserManages'
 
 const Manage = () => {
   return (
     <div>
-        <h1>Manage</h1>
-    </div>
+      <ListUserManages />
+      </div>
   )
 }
 

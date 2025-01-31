@@ -9,7 +9,7 @@ export const currentUser = async (Token) => {
         });
         return res.data;
     } catch (err) {
-        console.err('Error fetching current user:', err.res?.data || err.message);
+        console.error('Error fetching current user:', err.response?.data || err.message);
         throw err;
     }
 };
@@ -23,7 +23,8 @@ export const currentAdmin = async (Token) => {
         });
         return res.data;
     } catch (err) {
-        console.err('Error fetching current admin:', err.res?.data || err.message);
+        console.error('Error fetching current admin:', err.response?.data || err.message);
         throw err;
     }
 };
+

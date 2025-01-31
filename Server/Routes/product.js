@@ -31,7 +31,7 @@ router.delete("/product/:id",  remove);
 router.post("/productby",listby);
 router.post("/search/filters", searchFilters);
 
-router.post("/images", authCheck, adminCheck,createImages);
-router.delete("/remove-image", authCheck, adminCheck,removeImage);
+router.post("/images", authCheck, createImages);
+router.delete("/remove-image", authCheck, removeImage);
 
 module.exports = router;

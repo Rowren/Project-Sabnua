@@ -15,20 +15,20 @@ datasource db {
 
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String?
-  name      String?
-  tell      String?
-  picture   String?
-  role      String   @default("user")
-  enabled   Boolean  @default(true)
-  address   String?
-  orders    Order[]
-  carts     Cart[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  password        String?
+  name            String?
+  tell            String?
+  role            String   @default("user")
+  enabled         Boolean  @default(true)
+  address         String?
+  orders          Order[]
+  carts           Cart[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
+
 
 model Product {
   id          Int              @id @default(autoincrement())

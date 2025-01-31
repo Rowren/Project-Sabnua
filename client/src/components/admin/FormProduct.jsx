@@ -5,6 +5,8 @@ import { createProduct, deleteProduct } from '../../api/product';
 import Uploadfile from './Uploadfile';
 import { Link } from 'react-router-dom';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { numberFormat } from '../../utils/number';
+import { dateFormat } from '../../utils/dateFormat';
 
 const initialState = {
     title: "",
@@ -53,7 +55,7 @@ const FormProduct = () => {
         try {
             const res = await createProduct(token, form);
             setForm(initialState);
-            getProducts( 20);
+            getProducts(20);
             Swal.fire({
                 title: 'สำเร็จ!',
                 text: `เพิ่มรายการอาหาร "${res.data.title}" สำเร็จ!`,
@@ -87,7 +89,7 @@ const FormProduct = () => {
                 const res = await deleteProduct(token, id); // ฟังก์ชัน deleteProduct ที่ต้องสร้างใน API
 
                 // อัปเดตรายการสินค้าใหม่
-                getProducts( 20);
+                getProducts(20);
 
                 Swal.fire({
                     title: 'ลบสำเร็จ!',
@@ -110,10 +112,11 @@ const FormProduct = () => {
 
 
     return (
-<div className="container mx-auto p-4 bg-white shadow-md rounded-lg">            <div className="flex justify-center items-center">
+        <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
+            <div className="flex justify-center items-center">
                 <form
                     onSubmit={handleOnSubmit}
-                    className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6"
+                    className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6"
                 >
                     <h1 className="col-span-2 text-2xl font-bold mb-6 text-center text-red-600">
                         เพิ่มรายการอาหาร
@@ -194,7 +197,7 @@ const FormProduct = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className={`col-span-2 ${isSubmitting ? 'bg-gray-500' : 'bg-green-600 hover:bg-red-700'} text-white py-3 rounded-lg font-bold transition`}
+                        className={`col-span-2 ${isSubmitting ? 'bg-gray-500' : 'bg-green-600 hover:bg-green-700'} text-white py-3 rounded-lg font-bold transition`}
                     >
                         {isSubmitting ? 'กำลังบันทึก...' : 'เพิ่มรายการอาหาร'}
                     </button>
@@ -202,67 +205,71 @@ const FormProduct = () => {
             </div>
 
             <div className="mt-10 overflow-x-auto">
-                <h2 className="text-xl font-bold mb-4">รายการสินค้า</h2>
-                <table className="min-w-full bg-white border border-gray-300">
-    <thead>
-        <tr className="bg-gray-200 text-left">
-            <th className="p-3">No.</th>
-            <th className="p-3">รูปเมนู</th>
-            <th className="p-3">ชื่อเมนู</th>
-            <th className="p-3">รายละเอียด</th>
-            <th className="p-3">ประเภทอาหาร</th>
-            <th className="p-3">ราคา</th>
-            <th className="p-3">จำนวน</th>
-            <th className="p-3">จำนวนที่ขาย</th>
-            <th className="p-3">วันที่อัปเดต</th>
-            <th className="p-3">จัดการ</th>
-        </tr>
-    </thead>
-    <tbody>
-        {products?.map((product, index) => {
-            const category = categories.find(category => category.id === product.categoryId);
-            return (
-                <tr key={index} className="border-t">
-                    <td className="p-3">{index + 1}</td>
-                    <td className="p-3 hover:scale-125">
-                        {product.images.length > 0 ? (
-                            <img
-                                className="w-24 h-24 max-w-full max-h-24 object-cover rounded-lg shadow-md"
-                                src={product.images[0].url}
-                                alt="product"
-                            />
-                        ) : (
-                            <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center shadow-sm">
-                                No Image
-                            </div>
-                        )}
-                    </td>
-                    <td className="p-3">{product.title}</td>
-                    <td className="p-3">{product.description}</td>
-                    <td className="p-3">{category ? category.name : 'ไม่มีข้อมูล'}</td>
-                    <td className="p-3">{product.price}</td>
-                    <td className="p-3">{product.quantity}</td>
-                    <td className="p-3">{product.sold}</td>
-                    <td className="p-3">{product.updatedAt}</td>
-                    <td className="p-3 text-center">
-                        <Link to={`/admin/product/${product.id}`} className="flex items-center gap-1 text-white bg-green-500 px-2 rounded-md shadow-md hover:text-yellow-500">
-                            <FaEdit /> แก้ไข
-                        </Link>
-                        <p
-                            onClick={() => handleDelete(product.id)}
-                            className="flex items-center justify-center gap-1 text-white bg-red-600 hover:text-yellow-500 rounded-md shadow-md cursor-pointer mt-2"
-                        >
-                            <FaTrash /> ลบ
-                        </p>
-                    </td>
-                </tr>
-            );
-        })}
-    </tbody>
-</table>
+    <h2 className="text-xl font-bold mb-4">รายการสินค้า</h2>
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg">
 
-            </div>
+    <table className="min-w-full border border-gray-200">
+    <thead>
+            <tr className="bg-gray-200 text-left">
+                <th className="p-3 text-sm ">No.</th>
+                <th className="p-3 text-sm ">รูปเมนู</th>
+                <th className="p-3 text-sm ">ชื่อเมนู</th>
+                <th className="p-3 text-sm ">รายละเอียด</th>
+                <th className="p-3 text-sm ">ประเภทอาหาร</th>
+                <th className="p-3 text-sm ">ราคา</th>
+                <th className="p-3 text-sm ">จำนวน</th>
+                <th className="p-3 text-sm ">จำนวนที่ขาย</th>
+                <th className="p-3 text-sm ">วันที่อัปเดต</th>
+                <th className="p-3 text-sm ">จัดการ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {products?.map((product, index) => {
+                const category = categories.find(category => category.id === product.categoryId);
+                return (
+                    <tr key={index} className="border-t">
+                        <td className="p-3 text-sm ">{index + 1}</td>
+                        <td className="p-3 hover:scale-125">
+                            {product.images.length > 0 ? (
+                                <img
+                                    className="w-24 h-24 max-w-full max-h-24 object-cover rounded-lg shadow-md"
+                                    src={product.images[0].url}
+                                    alt="product"
+                                />
+                            ) : (
+                                <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center shadow-sm">
+                                    No Image
+                                </div>
+                            )}
+                        </td>
+                        <td className="p-3 text-sm ">{product.title}</td>
+                        <td className="p-3 text-sm ">{product.description}</td>
+                        <td className="p-3 text-sm ">{category ? category.name : 'ไม่มีข้อมูล'}</td>
+                        <td className="p-3 text-sm ">{numberFormat(product.price)}</td>
+                        <td className="p-3 text-sm ">{product.quantity}</td>
+                        <td className="p-3 text-sm ">{product.sold}</td>
+                        <td className="p-3 text-sm ">{dateFormat(product.updatedAt)}</td>
+                        <td className="p-3 text-center">
+                            <Link to={`/admin/product/${product.id}`} className="flex items-center gap-1 text-white bg-green-500 px-2 rounded-md shadow-md hover:text-yellow-500">
+                                <FaEdit /> แก้ไข
+                            </Link>
+                            <p
+                                onClick={() => handleDelete(product.id)}
+                                className="flex items-center justify-center gap-1 text-white bg-red-600 hover:text-yellow-500 rounded-md shadow-md cursor-pointer mt-2"
+                            >
+                                <FaTrash /> ลบ
+                            </p>
+                        </td>
+                    </tr>
+                );
+            })}
+        </tbody>
+    </table>
+    </div>
+</div>
+
         </div>
+
     );
 };
 

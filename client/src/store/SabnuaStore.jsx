@@ -27,12 +27,16 @@ const useSabnuaStore = create(
           throw new Error('Invalid login credentials');
         }
       },
-      
-      
 
       // ฟังก์ชัน Logout
       actionLogout: () => {
-        set({ user: null, token: null });
+        set({ 
+          user: null,
+          token: null,
+          categories: [],
+          products: [],
+          carts: [], 
+        });
       },
 
       // ฟังก์ชัน getCategory
@@ -89,8 +93,6 @@ const useSabnuaStore = create(
         }
       },
             
-      
-
       //ฟังก์ชัน อัปเดตจำนวน
       actionUpdateQuantity: (productId, newQuantity) => {
         if (typeof newQuantity !== 'number' || isNaN(newQuantity) || newQuantity < 1) {
@@ -107,8 +109,6 @@ const useSabnuaStore = create(
         }));
       },
       
-      
-
       //ฟังก์ชัน ลบสินค้าในตระก้า
       actionRemoveProduct: (productId) => {
         try {
@@ -136,9 +136,9 @@ const useSabnuaStore = create(
         }
       },
       
+      //ฟังชัน เคลียสินค้าในตระก้า
+      clearCart: () => set({ carts: [] }),
       
-
-
 
     }),
     {

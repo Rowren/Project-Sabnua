@@ -70,3 +70,34 @@ export const getOrder = async (token) => {
         throw error;
     }
 };
+
+export const updateUser = async (token, id, form) => {
+    try {
+        const res = await axios.put(`http://localhost:5004/api/users/${id}`, form, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        console.log("User updated successfully:", res.data);
+        return res.data;
+    } catch (error) {
+        console.error("Error updating user:", error.response?.data || error.message);
+        throw error;
+    }
+};
+export const getUser = async (token, id) => {
+    try {
+        const res = await axios.get(`http://localhost:5004/api/users/${id}`,  {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        console.log("User fetched successfully:", res.data);
+        return res.data;
+    } catch (error) {
+        console.error("Error fetching user:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+

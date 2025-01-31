@@ -105,6 +105,20 @@ export const searchFilter = async ({ query, category }) => { // ลบ price อ
     }
 };
 
+export const listProductBy = async (sort,order,limit) => { 
+    try {
+        const res = await axios.post("http://localhost:5004/api/productby", {
+            sort,
+            order,
+            limit
+        });
+        console.log("Search result:", res.data);
+        return res;  // เพิ่ม return เพื่อให้ใช้ผลลัพธ์จากการค้นหาได้
+    } catch (error) {
+        console.error("Search error:", error.message);
+    }
+};
+
 
   
 

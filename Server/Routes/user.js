@@ -1,11 +1,9 @@
 const express = require('express')
 const router = express.Router()
-const { listUsers, changeStatus, ChangeRole, userCart, getUserCart, saveAddress, saveOrder, emptyCart, getOrder } = require('../controllers/user')
-const { authCheck, adminCheck } = require('../middlewares/authcheck')
+const {  userCart, getUserCart, saveAddress, saveOrder, emptyCart, getOrder, updateUser, getUserById } = require('../controllers/user')
+const { authCheck,  } = require('../middlewares/authcheck')
 
-router.get('/users',authCheck,adminCheck,listUsers)
-router.post('/change-status',authCheck,adminCheck,changeStatus)
-router.post('/change-role',authCheck,adminCheck,ChangeRole)
+
 
 
 router.post('/user/cart',authCheck,userCart)
@@ -16,6 +14,10 @@ router.post('/user/address',authCheck,saveAddress)
 
 router.post('/user/order',authCheck,saveOrder)
 router.get('/user/order',authCheck,getOrder)
+
+router.put('/users/:id', authCheck, updateUser);
+router.get('/users/:id', authCheck, getUserById);
+
 
  
 

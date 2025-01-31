@@ -1,58 +1,10 @@
 const { Prisma } = require("@prisma/client");
 const prisma = require("../Config/prisma");
 const { user } = require("../Config/prisma");
+const bcrypt = require('bcryptjs'); // หรือ 'bcrypt'
 
-exports.listUsers = async (req, res) => {
-  try {
-    //code
 
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        enabled: true,
-        address: true,
-      },
-    });
-    res.json(users);
-  } catch (err) {
-    //error
-    console.log(err);
-    res.status(500).json({ message: " Sever Error" });
-  }
-};
-exports.changeStatus = async (req, res) => {
-  try {
-    //code
-    const { id, enabled } = req.body;
-    console.log(id, enabled);
-    const user = await prisma.user.update({
-      where: { id: Number(id) },
-      data: { enabled: enabled },
-    });
-    res.send("Update Status Success");
-  } catch (err) {
-    //error
-    console.log(err);
-    res.status(500).json({ message: " Sever Error" });
-  }
-};
-exports.ChangeRole = async (req, res) => {
-  try {
-    //code
-    const { id, role } = req.body;
-    const user = await prisma.user.update({
-      where: { id: Number(id) },
-      data: { role: role },
-    });
-    res.send("Update Role Success");
-  } catch (err) {
-    //error
-    console.log(err);
-    res.status(500).json({ message: " Sever Error" });
-  }
-};
+
 
 exports.userCart = async (req, res) => {
   try {
@@ -200,7 +152,7 @@ exports.saveAddress = async (req, res) => {
     //code
     const { address } = req.body;
     console.log(address);
-    const adddressUser = await prisma.user.update({
+    const addressUser = await prisma.user.update({
       where: {
         id: Number(req.user.id),
       },
@@ -316,5 +268,78 @@ exports.getOrder = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+      const { id } = req.params; // ID ของผู้ใช้ที่ต้องการแก้ไข
+      const {  password, name, tell} = req.body;
+
+      // ตรวจสอบว่ามีการส่ง ID มาหรือไม่
+      if (!id) {
+          return res.status(400).json({ message: 'User ID is required!' });
+      }
+
+      // ตรวจสอบว่าผู้ใช้มีอยู่ในฐานข้อมูลหรือไม่
+      const existingUser = await prisma.user.findUnique({
+          where: { id: parseInt(id) }, // ตรวจสอบผู้ใช้ตาม ID
+      });
+      if (!existingUser) {
+          return res.status(404).json({ message: 'User not found!' });
+      }
+
+      // หากมีการส่งรหัสผ่านมา ให้แฮชรหัสผ่านใหม่
+      let hashPassword = existingUser.password;
+      if (password) {
+          hashPassword = await bcrypt.hash(password, 10);
+      }
+
+      // อัปเดตข้อมูลในฐานข้อมูล
+      const updatedUser = await prisma.user.update({
+          where: { id: parseInt(id) },
+          data: {
+              password: hashPassword,
+              name: name || existingUser.name,
+              tell: tell || existingUser.tell,
+                },
+      });
+
+      res.status(200).json({
+          message: 'User updated successfully!',
+          user: {
+              id: updatedUser.id,
+              name: updatedUser.name,
+              tell: updatedUser.tell
+          },
+      });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+      const { id } = req.params;  // ดึงค่า id จาก URL params
+      if (!id) {
+          return res.status(400).json({ message: "กรุณาระบุ ID ของผู้ใช้" });
+      }
+
+      // ค้นหาผู้ใช้ในฐานข้อมูลตาม ID
+      const user = await prisma.user.findUnique({
+          where: {
+              id: parseInt(id),  // ใช้ parseInt เพื่อแปลงค่า id เป็นตัวเลข
+          },
+      });
+
+      if (!user) {
+          return res.status(404).json({ message: "ไม่พบผู้ใช้" });
+      }
+
+      res.status(200).json({ user });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้" });
   }
 };

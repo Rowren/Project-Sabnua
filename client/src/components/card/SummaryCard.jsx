@@ -3,6 +3,7 @@ import useSabnuaStore from '../../store/SabnuaStore';
 import { listUserCart, saveAddress } from '../../api/user';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import { numberFormat } from '../../utils/number';
 
 const SummaryCard = () => {
 
@@ -117,7 +118,7 @@ const SummaryCard = () => {
                                         </div>
 
                                         <div>
-                                            <p className='text-red-500 font-bold'>{pd.count * pd.product.price}</p>
+                                            <p className='text-red-500 font-bold'>{numberFormat(pd.count * pd.product.price)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -139,7 +140,7 @@ const SummaryCard = () => {
                         <div>
                             <div className='flex justify-between'>
                                 <p className='text-lg font-semibold'>ยอดรวมสุทธิ:</p>
-                                <p className='text-lg text-red-500 font-semibold'>{cartTotal}</p>
+                                <p className='text-lg text-red-500 font-semibold'>{numberFormat(cartTotal)}</p>
                             </div>
                         </div>
 

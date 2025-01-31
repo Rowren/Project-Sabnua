@@ -24,13 +24,13 @@ const Menu = () => {
   return (
     <div className="relative min-h-screen bg-yellow-50">
       {/* Main Content */}
-      <div className="p-6 lg:grid lg:grid-cols-[3fr_1fr] lg:gap-4">
+      <div className="p-4 lg:grid lg:grid-cols-[3fr_1fr] lg:gap-4">
         {/* Product Section */}
-        <div className="bg-white p-4 shadow-md rounded-md border border-yellow-300 mb-6">
+        <div className="bg-white p-4 shadow-md rounded-md border border-yellow-300 mb-4">
           <SearchCard />
           <h2 className="text-lg font-semibold text-yellow-700 mb-4">เมนูอาหาร</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {Array.isArray(products) && products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-2">
+          {Array.isArray(products) && products.length > 0 ? (
               products.map((product, index) => (
                 <ProductCard
                   key={index}

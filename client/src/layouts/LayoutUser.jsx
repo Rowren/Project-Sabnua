@@ -7,8 +7,11 @@ const LayoutUser = () => {
   return (
     <div>
       <Navbar />
-      <main className='h-full p-4 mx-auto'></main>
-      <Outlet />
+      <main className='h-full p-2 mx-auto'>
+  
+  <Outlet />
+</main>
+
     </div>
   )
 }

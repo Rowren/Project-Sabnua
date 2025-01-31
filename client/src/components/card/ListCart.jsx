@@ -4,6 +4,7 @@ import useSabnuaStore from '../../store/SabnuaStore';
 import { useNavigate } from 'react-router-dom';
 import { createUserCart } from '../../api/user';
 import Swal from 'sweetalert2';
+import { numberFormat } from '../../utils/number';
 
 const ListCart = () => {
     const cart = useSabnuaStore((state) => state.carts);
@@ -76,7 +77,7 @@ const ListCart = () => {
                                     </div>
                                 </div>
                                 <div className="font-semibold text-yellow-700 text-lg">
-                                    ฿{(item.price * item.count).toLocaleString()}
+                                    ฿{numberFormat(item.price * item.count)}
                                 </div>
                             </div>
                         </div>
@@ -88,39 +89,42 @@ const ListCart = () => {
                     <p className="text-2xl font-bold">ยอดรวม</p>
                     <div className="flex justify-between">
                         <span>รวมสุทธิ</span>
-                        <span className="text-xl">฿{getTotalPrice().toLocaleString()}</span>
+                        <span className="text-xl">฿{numberFormat(getTotalPrice())}</span>
                     </div>
 
                     <div className="flex flex-col gap-3">
                     <button
-  onClick={() => {
-    if (user) {
-        console.log('User is logged in:', user);
-        handleSaveCart();
-      } else {
-        console.log('User is not logged in. Redirecting to login...');
-        navigate('/login');
-      }
-  }}
-  className={`w-full rounded-md text-white p-1.5 shadow-md ${
-    loading
-      ? 'bg-gray-400 cursor-not-allowed'
-      : user
-      ? 'bg-green-600 hover:bg-green-800'
-      : 'bg-blue-600 hover:bg-blue-800'
-  }`}
-  disabled={loading}
+    disabled={cart.length < 1} // ปิดปุ่มหากไม่มีสินค้าในตะกร้า
+    onClick={() => {
+        if (!user) {
+            // หากผู้ใช้ไม่ได้ล็อกอิน ให้ redirect ไปที่หน้าล็อกอิน
+            console.log('User is not logged in. Redirecting to login...');
+            navigate('/login');
+        } else {
+            // หากผู้ใช้ล็อกอินแล้ว ให้ทำการบันทึกตะกร้า
+            console.log('User is logged in:', user);
+            handleSaveCart();
+        }
+    }}
+    className={`w-full rounded-md text-white p-1.5 shadow-md ${loading
+        ? 'bg-gray-400 cursor-not-allowed' // ปิดปุ่มเมื่อกำลังโหลด
+        : user
+            ? 'bg-green-600 hover:bg-green-800' // สีปุ่มเมื่อผู้ใช้ล็อกอิน
+            : 'bg-blue-600 hover:bg-blue-800' // สีปุ่มเมื่อผู้ใช้ไม่ได้ล็อกอิน
+        }`}
 >
-  {user ? 'สั่งซื้อ' : 'เข้าสู่ระบบ'}
+    {user ? 'สั่งซื้อ' : 'เข้าสู่ระบบ'} {/* ข้อความบนปุ่มเปลี่ยนตามสถานะล็อกอิน */}
 </button>
+
 
 
 
                         <button
                             onClick={() => navigate('/Menu')}
-                            className="bg-yellow-300 w-full rounded-md text-white p-1.5 shadow-md hover:bg-yellow-600"
+                            className={`bg-yellow-300 w-full rounded-md text-white p-1.5 shadow-md hover:bg-yellow-600 ${cart.length < 1 ? 'bg-red-400 hover:bg-red-600' : ''
+                                }`}
                         >
-                            แก้ไขรายการอาหาร
+                            {cart.length < 1 ? 'เพิ่มรายการอาหาร' : 'แก้ไขรายการอาหาร'}
                         </button>
                     </div>
                 </div>

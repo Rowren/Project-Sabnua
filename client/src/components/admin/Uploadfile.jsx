@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import Resize from 'react-image-file-resizer';
 import { removeFile, uploadFiles } from '../../api/product';
 import useSabnuaStore from '../../store/SabnuaStore';
-import { FaSpinner } from 'react-icons/fa'; // Import Spinner icon
+import { FaSpinner } from 'react-icons/fa'; // Spinner icon
 
 const Uploadfile = ({ form, setForm }) => {
     const token = useSabnuaStore((state) => state.token);
@@ -107,8 +107,6 @@ const Uploadfile = ({ form, setForm }) => {
                 .catch((err) => console.error("Error uploading files:", err));
         }
     };
-    
-
 
     const handleDelete = async (public_id) => {
         if (!public_id) {
@@ -151,7 +149,6 @@ const Uploadfile = ({ form, setForm }) => {
     return (
         <div className='m-4'>
             <div className="image-gallery flex mx-auto gap-2 my-4">
-                
                 {/* แสดงภาพ */}
                 {form.images.map((image, index) => (
                     <div key={index} className="image-item relative">
@@ -186,30 +183,27 @@ const Uploadfile = ({ form, setForm }) => {
             </div>
 
             <div className="upload-section relative">
-    <div className="relative">
-        <input
-            onChange={handleOnChange}
-            type="file"
-            name="images"
-            multiple
-            disabled={loading}
-            className="relative z-10 opacity-0 w-full h-full cursor-pointer"
-        />
-        <div
-            className={`absolute inset-0 flex items-center justify-center ${
-                loading ? "z-20" : "z-0"
-            }`}
-        >
-            {loading && <FaSpinner className="animate-spin text-blue-500 text-3xl" />}
-        </div>
-        {!loading && (
-            <div className="absolute inset-0 flex items-center justify-center z-0 bg-gray-200">
-                <p className="text-gray-600">เลือกรูปภาพ</p>
+                <div className="relative">
+                    <input
+                        onChange={handleOnChange}
+                        type="file"
+                        name="images"
+                        multiple
+                        disabled={loading}
+                        className="relative z-10 opacity-0 w-full h-full cursor-pointer"
+                    />
+                    <div
+                        className={`absolute inset-0 flex items-center justify-center ${loading ? "z-20" : "z-0"}`}
+                    >
+                        {loading && <FaSpinner className="animate-spin text-blue-500 text-3xl" />}
+                    </div>
+                    {!loading && (
+                        <div className="absolute inset-0 flex items-center justify-center z-0 bg-gray-200">
+                            <p className="text-gray-600">เลือกรูปภาพ</p>
+                        </div>
+                    )}
+                </div>
             </div>
-        )}
-    </div>
-</div>
-
         </div>
     );
 };
