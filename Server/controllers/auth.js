@@ -88,7 +88,7 @@ exports.login = async (req, res) => {
             role: user.role
         }
         // Step 4 Generate Token
-        jwt.sign(payload, process.env.SECRET, { expiresIn: '1d' }, (err, token) => {
+        jwt.sign(payload, process.env.SECRET, { expiresIn: '3hr' }, (err, token) => {
             if (err) {
                 return res.status(500).json({ message: "Server Error" })
             }

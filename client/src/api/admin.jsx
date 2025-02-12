@@ -1,19 +1,42 @@
 import axios from "axios";
 
 
-export const getOrdersAdmin = async (token) => {
+
+export const getDashboardData = async (token) => {
+    console.log("Token used for request:", token); // Debug token
     try {
-        const res = await axios.get('http://localhost:5004/api/admin/orders', {
+        const response = await axios.get('http://localhost:5004/api/admin/dashboard', {
             headers: {
-                Authorization: `Bearer ${token}`,
-            },
+                Authorization: `Bearer ${token}`
+            }
         });
-        return res;
+        return response.data;
     } catch (error) {
-        console.error("ข้อผิดพลาดในการสร้างสินค้า:", error.response?.data || error.message);
+        console.error("Error fetching dashboard data:", error.response?.data || error);
         throw error;
     }
 };
+
+
+
+  
+export const getOrdersAdmin = async (token, statusFilter) => {
+    try {
+      const res = await axios.get('http://localhost:5004/api/admin/orders', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          statusFilter, // ส่งฟิลเตอร์สถานะไปใน query params
+        },
+      });
+      return res;
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูลคำสั่งซื้อ:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+  
 
 export const changeOrderStatus = async (token, orderId, orderStatus) => {
     try {

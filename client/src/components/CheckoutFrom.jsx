@@ -15,7 +15,7 @@ export default function CheckoutForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!stripe || !elements) {
       Swal.fire({
         icon: "error",
@@ -24,15 +24,15 @@ export default function CheckoutForm() {
       });
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
       const payload = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
       });
-
+  
       if (payload.error) {
         Swal.fire({
           icon: "error",
@@ -41,15 +41,15 @@ export default function CheckoutForm() {
         });
       } else if (payload.paymentIntent.status === "succeeded") {
         try {
-          // บันทึกคำสั่งซื้อ
-          await saveOrder(token, payload);
+          const deliveryMethod = "DELIVERY"; // หรือ "PICKUP" ตามค่าที่ต้องการ
+          await saveOrder(token, payload.paymentIntent, deliveryMethod);
           clearCart();
           Swal.fire({
             icon: "success",
             title: "สำเร็จ!",
             text: "ชำระเงินสำเร็จ และบันทึกคำสั่งซื้อแล้ว!",
           }).then(() => {
-            navigate("/user/history"); // เปลี่ยนเส้นทางหลังจากกด OK
+            navigate("/user/history");
           });
         } catch (err) {
           console.error("Error saving order:", err);
@@ -74,9 +74,10 @@ export default function CheckoutForm() {
         text: "เกิดข้อผิดพลาดในการดำเนินการชำระเงิน",
       });
     }
-
+  
     setIsLoading(false);
   };
+  
 
   return (
     <form

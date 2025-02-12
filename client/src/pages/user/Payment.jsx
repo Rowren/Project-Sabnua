@@ -3,13 +3,13 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { payment } from "../../api/stripe";
 import useSabnuaStore from "../../store/SabnuaStore";
-import CheckoutForm from "../../components/CheckoutFrom"; // ตรวจสอบชื่อไฟล์ให้ตรงกัน
+import CheckoutFrom from "../../components/CheckoutFrom"// ตรวจสอบชื่อไฟล์ให้ตรงกัน
 
-const stripePromise = loadStripe("pk_test_51QfFWYAR1tw9Jtihy9XCi6ggqppJLZmDQhDU1TgwwopdydkeEBRRFSYYdr5CUFQJ3bZhX9UMxB1l2rVK9KQLbwcO00J6g8h6bC");
+const stripePromise = loadStripe("pk_test_51QfFWgPIj0maEGG55JpYltd6RgjsKYmNqApD5dwmdxNlnScgpjqW7soDmOqINqc1y7hd7rl7teS4ZgVGJt14opCr00MivXt7E7");
 
 const Payment = () => {
-  const token = useSabnuaStore((state) => state.token); // ใช้ token จาก Store
-  const [clientSecret, setClientSecret] = useState("");
+  const token = useSabnuaStore((state) => state.token);
+  const [clientSecret, setClientSecret] = useState(null); // ตั้งค่าเป็น null เริ่มต้น
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -40,11 +40,12 @@ const Payment = () => {
         <p className="text-red-500">{error}</p>
       ) : (
         <Elements options={{ clientSecret, appearance }} stripe={stripePromise}>
-          <CheckoutForm />
+          <CheckoutFrom />
         </Elements>
       )}
     </div>
   );
 };
+
 
 export default Payment;

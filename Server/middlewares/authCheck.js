@@ -5,33 +5,43 @@ const prisma = require('../Config/prisma');
 exports.authCheck = async (req, res, next) => {
     try {
         const headerToken = req.headers.authorization;
-        console.log(headerToken);
+        console.log("🔑 Token ที่ได้รับ:", headerToken);
 
-        // ถ้าไม่มีข้อมูล Token
+        // ถ้าไม่มี Token
         if (!headerToken) {
             return res.status(401).json({ message: "ไม่พบ Token, กรุณาเข้าสู่ระบบ" });
         }
 
         const token = headerToken.split(" ")[1];
 
-        const decode = jwt.verify(token, process.env.SECRET);
-        req.user = decode;
+        try {
+            const decode = jwt.verify(token, process.env.SECRET);
+            req.user = decode;
+        } catch (err) {
+            if (err.name === "TokenExpiredError") {
+                return res.status(401).json({ message: "Token หมดอายุ, กรุณาเข้าสู่ระบบใหม่" });
+            } else if (err.name === "JsonWebTokenError") {
+                return res.status(401).json({ message: "Token ไม่ถูกต้อง" });
+            }
+            throw err;
+        }
 
-        const user = await prisma.user.findFirst({
-            where: {
-                email: req.user.email,
-            },
+        const user = await prisma.user.findUnique({
+            where: { email: req.user.email },
         });
 
-        // ถ้าบัญชีถูกระงับ
+        if (!user) {
+            return res.status(404).json({ message: "ไม่พบผู้ใช้ในระบบ" });
+        }
+
         if (!user.enabled) {
-            return res.status(400).json({ message: "บัญชีนี้ถูกระงับการใช้งาน" });
+            return res.status(403).json({ message: "บัญชีนี้ถูกระงับการใช้งาน" });
         }
 
         next();
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Token ไม่ถูกต้องกรุณาเข้าสู่ระบบ" });
+        console.error("⚠️ Error in authCheck:", err);
+        res.status(500).json({ message: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์" });
     }
 };
 
@@ -39,19 +49,22 @@ exports.authCheck = async (req, res, next) => {
 exports.adminCheck = async (req, res, next) => {
     try {
         const { email } = req.user;
-        const adminUser = await prisma.user.findFirst({
+        const adminUser = await prisma.user.findUnique({
             where: { email: email },
         });
 
-        // ถ้าไม่ใช่ Admin
-        if (!adminUser || adminUser.role !== 'admin') {
+        if (!adminUser) {
+            return res.status(404).json({ message: "ไม่พบผู้ใช้ในระบบ" });
+        }
+
+        if (adminUser.role !== 'admin') {
             return res.status(403).json({ message: "การเข้าถึงถูกปฏิเสธ: เฉพาะผู้ดูแลระบบเท่านั้น" });
         }
 
         next();
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "เกิดข้อผิดพลาด: การเข้าถึงผู้ดูแลระบบถูกปฏิเสธ" });
+        console.error("⚠️ Error in adminCheck:", err);
+        res.status(500).json({ message: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์" });
     }
 };
 
@@ -63,14 +76,17 @@ exports.employeeCheck = async (req, res, next) => {
             where: { email: email },
         });
 
-        // ถ้าไม่ใช่ Employee หรือ Admin
-        if (!user || (user.role !== 'employee' && user.role !== 'admin')) {
+        if (!user) {
+            return res.status(404).json({ message: "ไม่พบผู้ใช้ในระบบ" });
+        }
+
+        if (user.role !== 'employee' && user.role !== 'admin') {
             return res.status(403).json({ message: "การเข้าถึงถูกปฏิเสธ: เฉพาะพนักงานหรือผู้ดูแลระบบเท่านั้น" });
         }
 
         next();
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "เกิดข้อผิดพลาด: การเข้าถึงพนักงาน/ผู้ดูแลระบบถูกปฏิเสธ" });
+        console.error("⚠️ Error in employeeCheck:", err);
+        res.status(500).json({ message: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์" });
     }
 };

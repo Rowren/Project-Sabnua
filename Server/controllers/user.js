@@ -171,37 +171,61 @@ exports.saveAddress = async (req, res) => {
 
 exports.saveOrder = async (req, res) => {
   try {
-    //code
-    // Step 0 Check Stripe
-    console.log("Request Body:", req.body); // Debugging
+    console.log("Request Body:", req.body);
 
     // ตรวจสอบว่า payload และ paymentIntent มีอยู่หรือไม่
     if (!req.body.payload || !req.body.payload.paymentIntent) {
       return res.status(400).json({ error: 'Missing paymentIntent in request body payload' });
     }
 
-    // ดึงข้อมูลจาก paymentIntent
     const { id, amount, status, currency } = req.body.payload.paymentIntent;
+    const deliveryMethod = req.body.payload?.deliveryMethod;
 
-    //Step 1 Get User Cart
-   const userCart = await prisma.cart.findFirst({
-      where: {
-        orderedById: Number(req.user.id),
-      },
-      include: { products: true }, // ดึงรายละเอียดสินค้า
-    });
-
-    //Check Cart Empty
-    if (!userCart || userCart.products.length === 0) {
-      return res.status(400).json({
-        ok: false,
-        message: "Cart is Empty",
-      });
+    // ✅ ตรวจสอบว่า deliveryMethod มีค่าหรือไม่
+    if (!deliveryMethod) {
+      return res.status(400).json({ error: 'Missing delivery method in request body payload' });
     }
 
-    const amountTHB = Number(amount) / 100
+    // ✅ ตรวจสอบค่า deliveryMethod ว่าถูกต้องหรือไม่
+    if (!["PICKUP", "DELIVERY"].includes(deliveryMethod.toUpperCase())) {
+      return res.status(400).json({ error: 'Invalid delivery method' });
+    }
 
-    // สร้าง order
+    // ✅ ตรวจสอบสถานะการชำระเงิน
+    if (status !== "succeeded") {
+      return res.status(400).json({ error: 'Payment failed, please try again' });
+    }
+
+    // ✅ ดึงข้อมูล user
+    const user = await prisma.user.findUnique({
+      where: { id: Number(req.user.id) },
+      select: { address: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // ✅ กำหนด deliveryAddress
+    let deliveryAddress = deliveryMethod.toUpperCase() === "DELIVERY" ? user.address || null : "รับที่ร้าน";
+
+    if (deliveryMethod.toUpperCase() === "DELIVERY" && !user.address) {
+      return res.status(400).json({ error: "No address found for delivery" });
+    }
+
+    // ✅ ดึงข้อมูลตะกร้าสินค้า
+    const userCart = await prisma.cart.findFirst({
+      where: { orderedById: Number(req.user.id) },
+      include: { products: true },
+    });
+
+    if (!userCart || userCart.products.length === 0) {
+      return res.status(400).json({ message: "Cart is Empty" });
+    }
+
+    const amountTHB = Number(amount) / 100;
+
+    // ✅ สร้าง order
     const order = await prisma.order.create({
       data: {
         products: {
@@ -211,20 +235,19 @@ exports.saveOrder = async (req, res) => {
             price: item.price,
           })),
         },
-        orderedBy: {
-          connect: { id: req.user.id },
-        },
+        orderedBy: { connect: { id: req.user.id } },
         cartTotal: userCart.cartTotal,
         stripePaymentId: id,
         amount: amountTHB,
         status: status,
         currency: currency,
+        deliveryMethod: deliveryMethod.toUpperCase(),
+        deliveryAddress: deliveryAddress,
       },
     });
 
-
-     // อัปเดตสินค้าคงคลัง
-     const update = userCart.products.map((item) => ({
+    // ✅ อัปเดตสินค้าคงคลัง
+    const update = userCart.products.map((item) => ({
       where: { id: item.productId },
       data: {
         quantity: { decrement: item.count },
@@ -233,21 +256,21 @@ exports.saveOrder = async (req, res) => {
     }));
     await Promise.all(update.map((updated) => prisma.product.update(updated)));
 
-    // ลบ cart หลังจากสร้าง order
+    // ✅ ลบ cart หลังจากสร้าง order
     await prisma.cart.deleteMany({
       where: { orderedById: Number(req.user.id) },
     });
 
     res.json({ ok: true, order });
   } catch (err) {
-    console.error('Error in saveOrder:', err); // Log ข้อผิดพลาด
+    console.error('Error in saveOrder:', err);
     res.status(500).json({ message: "Server Error" });
   }
 };
 
 exports.getOrder = async (req, res) => {
   try {
-    // ดึงคำสั่งซื้อทั้งหมดของผู้ใช้
+    // ดึงคำสั่งซื้อของผู้ใช้ และเรียงจากวันล่าสุด -> เก่าสุด
     const orders = await prisma.order.findMany({
       where: { orderedById: Number(req.user.id) },
       include: {
@@ -257,13 +280,14 @@ exports.getOrder = async (req, res) => {
           },
         },
       },
+      orderBy: { createdAt: "desc" }, // 🔥 เรียงจากใหม่ -> เก่า
     });
 
     if (!orders || orders.length === 0) {
       return res.status(400).json({ ok: false, message: "No Order" });
     }
 
-    console.log(orders); // ตรวจสอบข้อมูลใน console
+    console.log(orders);
     res.json({ ok: true, orders });
   } catch (err) {
     console.error(err);
@@ -271,38 +295,38 @@ exports.getOrder = async (req, res) => {
   }
 };
 
+
 exports.updateUser = async (req, res) => {
   try {
-      const { id } = req.params; // ID ของผู้ใช้ที่ต้องการแก้ไข
-      const {  password, name, tell} = req.body;
+      const { id } = req.params; // ดึง id จาก URL params
+      const { password, name, tell, address } = req.body; // ข้อมูลที่ต้องการอัปเดต
 
-      // ตรวจสอบว่ามีการส่ง ID มาหรือไม่
       if (!id) {
-          return res.status(400).json({ message: 'User ID is required!' });
+          return res.status(400).json({ message: 'User ID is required!' }); // ถ้าไม่มี id ให้แสดงข้อผิดพลาด
       }
 
-      // ตรวจสอบว่าผู้ใช้มีอยู่ในฐานข้อมูลหรือไม่
       const existingUser = await prisma.user.findUnique({
-          where: { id: parseInt(id) }, // ตรวจสอบผู้ใช้ตาม ID
+          where: { id: parseInt(id) }, // แปลง id ให้เป็นตัวเลข
       });
+
       if (!existingUser) {
-          return res.status(404).json({ message: 'User not found!' });
+          return res.status(404).json({ message: 'User not found!' }); // ถ้าผู้ใช้ไม่พบให้แสดงข้อผิดพลาด
       }
 
-      // หากมีการส่งรหัสผ่านมา ให้แฮชรหัสผ่านใหม่
+      // ถ้ามีการเปลี่ยนรหัสผ่าน, จะทำการแฮชรหัสผ่านใหม่
       let hashPassword = existingUser.password;
       if (password) {
           hashPassword = await bcrypt.hash(password, 10);
       }
 
-      // อัปเดตข้อมูลในฐานข้อมูล
       const updatedUser = await prisma.user.update({
           where: { id: parseInt(id) },
           data: {
               password: hashPassword,
               name: name || existingUser.name,
               tell: tell || existingUser.tell,
-                },
+              address: address || existingUser.address,
+          },
       });
 
       res.status(200).json({
@@ -310,7 +334,8 @@ exports.updateUser = async (req, res) => {
           user: {
               id: updatedUser.id,
               name: updatedUser.name,
-              tell: updatedUser.tell
+              tell: updatedUser.tell,
+              address: updatedUser.address,
           },
       });
   } catch (err) {
@@ -318,6 +343,8 @@ exports.updateUser = async (req, res) => {
       res.status(500).json({ message: 'Server Error' });
   }
 };
+
+
 
 exports.getUserById = async (req, res) => {
   try {
@@ -341,5 +368,31 @@ exports.getUserById = async (req, res) => {
   } catch (err) {
       console.error(err);
       res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้" });
+  }
+};
+
+exports.getUserAddress = async (req, res) => {
+  try {
+    const { id } = req.params;  // ดึงค่า id จาก URL params
+    if (!id) {
+      return res.status(400).json({ message: "กรุณาระบุ ID ของผู้ใช้" });
+    }
+
+    // ค้นหาผู้ใช้ในฐานข้อมูลและดึงที่อยู่
+    const user = await prisma.user.findUnique({
+      where: {
+        id: parseInt(id),  // ใช้ parseInt เพื่อแปลงค่า id เป็นตัวเลข
+      },
+    });
+
+    if (!user || !user.address) {
+      return res.status(404).json({ message: "ไม่พบที่อยู่ของผู้ใช้" });
+    }
+
+    // ส่งที่อยู่
+    res.status(200).json({ address: user.address });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงที่อยู่ของผู้ใช้" });
   }
 };

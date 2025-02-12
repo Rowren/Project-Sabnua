@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { listProductBy } from "../../api/product";
 import SwiperShowProduct from "../../utils/SwiperShowProduct";
 import { SwiperSlide } from "swiper/react";
-import ProductCard from "../card/ProductCard";
+import ProductCardHome from "../../components/home/ProductCardHome";
 
 const NewProduct = () => {
   const [data, setData] = useState([]);
@@ -29,7 +29,7 @@ const NewProduct = () => {
       <SwiperShowProduct>
         {data.map((item) => (
           <SwiperSlide key={item.id}>
-            <ProductCard product={item} />
+            <ProductCardHome product={item} />
           </SwiperSlide>
         ))}
       </SwiperShowProduct>

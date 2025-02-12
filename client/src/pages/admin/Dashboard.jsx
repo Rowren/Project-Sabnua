@@ -1,10 +1,9 @@
 import React from 'react'
+import DashboardForm from '../../components/admin/DashboardForm'
 
 const Dashboard = () => {
   return (
-    <div>
-      Dashboard
-    </div>
+    <DashboardForm />
   )
 }
 

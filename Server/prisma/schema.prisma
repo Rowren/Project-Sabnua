@@ -45,6 +45,11 @@ model Product {
   category    Category?        @relation(fields: [categoryId], references: [id])
   categoryId  Int?
 }
+// เพิ่ม Enum สำหรับ deliveryMethod
+enum DeliveryMethod {
+  PICKUP
+  DELIVERY
+}
 
 model Order {
   id              Int              @id @default(autoincrement())
@@ -59,6 +64,8 @@ model Order {
   amount          Int
   status          String
   currency        String           // แก้ไขสะกดจาก currentcy เป็น currency
+  deliveryMethod  DeliveryMethod   @default(PICKUP) // ใช้ Enum ที่สร้างขึ้น
+  deliveryAddress String?          // เพิ่มที่อยู่ถ้าเลือก delivery
 }
 
 

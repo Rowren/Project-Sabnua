@@ -1,35 +1,36 @@
 const prisma = require("../Config/prisma");
-const stripe = require("stripe")('sk_test_51QfFWYAR1tw9JtihEmz1h5FFqR1cujceDPbixbArQObLQI0Sn5lhoL9EmElTIJgUNJA92Uzo6FsMpiujWxaoyOcj00s51Izh78');
+const stripe = require('stripe')('sk_test_51QfFWgPIj0maEGG5gTvFcaHCDsW5RBICc4CbgMnxdm0wwYYL6q2GPVak6q5NRRHsDX205xPL6gCuAmJQxxmTGAhN009Cpdscdu');
 
 exports.payment = async (req, res) => {
   try {
-    //code
-    //check user
+    // ตรวจสอบว่ามี req.user.id หรือไม่
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // ดึงข้อมูลตะกร้าสินค้าของผู้ใช้
     const cart = await prisma.cart.findFirst({
-      where:{
-        orderedById:req.user.id
-      }
-    })
-   const amountTHB = cart.cartTotal * 100
+      where: { orderedById: req.user.id },
+    });
 
+    // ตรวจสอบว่ามีตะกร้าสินค้าหรือไม่
+    if (!cart || cart.cartTotal === undefined) {
+      return res.status(400).json({ message: "Cart not found or invalid total" });
+    }
 
-    // Create a PaymentIntent with the order amount and currency
+    const amountTHB = Math.round(cart.cartTotal * 100); // แปลงเป็นสตางค์
+
+    // สร้าง PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountTHB,
       currency: "thb",
-      // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      automatic_payment_methods: { enabled: true },
     });
-    
-  
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
+
+    // ส่ง clientSecret กลับไปให้ Frontend
+    res.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
-    //error
-    console.log(err);
-    res.status(500).json({ message: " Sever Error" });
+    console.error("Payment error:", err);
+    res.status(500).json({ message: "Server Error" });
   }
 };

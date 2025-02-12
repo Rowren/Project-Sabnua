@@ -11,7 +11,7 @@ const LayoutAdmin = () => {
   };
 
   const closeSidebar = () => {
-    setSidebarOpen(false);  // Corrected to setSidebarOpen
+    setSidebarOpen(false);
   };
 
   return (
@@ -20,8 +20,10 @@ const LayoutAdmin = () => {
       <SidebarAdmin isOpen={sidebarOpen} closeSidebar={closeSidebar} />
 
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <HeaderAdmin toggleSidebar={toggleSidebar} />
+        {/* Header (แสดงเฉพาะบนมือถือ) */}
+        <div className="md:hidden">
+          <HeaderAdmin toggleSidebar={toggleSidebar} />
+        </div>
 
         {/* Main Content */}
         <main className="flex-1 p-6 bg-gray-200 overflow-y-auto">

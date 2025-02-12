@@ -3,7 +3,7 @@ import { FaBars } from 'react-icons/fa';
 
 const HeaderAdmin = ({ toggleSidebar }) => {
   return (
-    <header className="bg-orange-400 h-16 flex items-center px-6">
+    <header className="bg-orange-400 h-16 flex items-center px-6 ">
       <button onClick={toggleSidebar} className="text-white md:hidden">
         <FaBars size={30} />
       </button>

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const {  userCart, getUserCart, saveAddress, saveOrder, emptyCart, getOrder, updateUser, getUserById } = require('../controllers/user')
+const {  userCart, getUserCart, saveAddress, saveOrder, emptyCart, getOrder, updateUser, getUserById, getUserAddress } = require('../controllers/user')
 const { authCheck,  } = require('../middlewares/authcheck')
 
 
@@ -17,6 +17,7 @@ router.get('/user/order',authCheck,getOrder)
 
 router.put('/users/:id', authCheck, updateUser);
 router.get('/users/:id', authCheck, getUserById);
+router.get('/users/:id/address',authCheck, getUserAddress);
 
 
  

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { listProductBy } from "../../api/product";
 import SwiperShowProduct from "../../utils/SwiperShowProduct";
 import { SwiperSlide } from "swiper/react";
-import ProductCard from "../card/ProductCard";
+import ProductCardHome from "../../components/home/ProductCardHome";
 
-const NewProduct = () => {
+const BestSeller = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -13,23 +13,24 @@ const NewProduct = () => {
 
   const loadData = async () => {
     try {
-      const res = await listProductBy("createdAt", "desc", 6);
+      const res = await listProductBy("sold", "desc", 6); // เปลี่ยนเป็น "sold"
       setData(res.data);
     } catch (err) {
-      console.error("Error loading new products:", err);
+      console.error("Error loading best-selling products:", err);
     }
   };
+  
 
   return (
     <div className="w-full py-10">
       <h2 className="text-center text-2xl font-bold text-gray-800 mb-6">
-        สินค้าใหม่
+        สินค้าที่ขายดี
       </h2>
       {data.length > 0 ? (
         <SwiperShowProduct>
           {data.map((item) => (
             <SwiperSlide key={item.id}>
-              <ProductCard product={item} />
+              <ProductCardHome product={item}  />
             </SwiperSlide>
           ))}
         </SwiperShowProduct>
@@ -42,4 +43,4 @@ const NewProduct = () => {
   );
 };
 
-export default NewProduct;
+export default BestSeller;

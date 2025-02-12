@@ -42,19 +42,23 @@ export const saveAddress= async (token, address) => {
     }
 };
 
-export const saveOrder= async (token, payload) => {
+export const saveOrder = async (token, paymentIntent, deliveryMethod) => {
     try {
-        const res = await axios.post('http://localhost:5004/api/user/order', {payload}, {
+        const payload = { paymentIntent, deliveryMethod };
+        const res = await axios.post('http://localhost:5004/api/user/order', { payload }, {
             headers: {
                 Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
             },
         });
         return res;
     } catch (error) {
-        console.error("ข้อผิดพลาด:", error.res?.data || error.message);
+        console.error("ข้อผิดพลาด:", error.response?.data || error.message);
         throw error; 
     }
 };
+
+
 export const getOrder = async (token) => {
     try {
         console.log("Token being sent:", token); // ตรวจสอบ token
@@ -85,9 +89,10 @@ export const updateUser = async (token, id, form) => {
         throw error;
     }
 };
+
 export const getUser = async (token, id) => {
     try {
-        const res = await axios.get(`http://localhost:5004/api/users/${id}`,  {
+        const res = await axios.get(`http://localhost:5004/api/users/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -99,5 +104,24 @@ export const getUser = async (token, id) => {
         throw error;
     }
 };
+
+
+
+// ฟังก์ชัน getAddress
+export const getAddress = async (token, id) => {
+    try {
+      const res = await axios.get(`http://localhost:5004/api/users/${id}/address`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("User fetched successfully:", res.data);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching user:", error.response?.data || error.message);
+      throw error;
+    }
+  };
+  
 
 

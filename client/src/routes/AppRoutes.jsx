@@ -57,9 +57,10 @@ const router = createBrowserRouter([
       { index: true, element: <HomeUser /> },
       { path: 'payment', element: <Payment /> },
       { path: 'history', element: <History /> },
-      { path: 'update/:id', element: <EditProfile /> },
+      { path: 'update/:id', element: <EditProfile /> }, // <-- ID ที่ใช้ใน URL
     ],
   }
+  
   
 
   
