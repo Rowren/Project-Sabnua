@@ -146,7 +146,7 @@ const SummaryCard = () => {
 
                         <div className="flex justify-between items-end mt-4 pt-4">
                             <div>
-                                <p className="font-semibold">ส่วนลด 10%</p>
+                                <p className="font-semibold">ส่วนลด</p>
                             </div>
                             <p className="text-red-500">- {numberFormat(discount)}</p>
                         </div>

@@ -29,23 +29,25 @@ ChartJS.register(
 
 const DashboardFrom = () => {
   const [dashboard, setDashboard] = useState(null);
-  const [selectedChart, setSelectedChart] = useState("topProducts");
+  const [selectedChart, setSelectedChart] = useState("revenue");
   const token = useSabnuaStore((state) => state.token);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const data = await getDashboardData(token);
-        setDashboard(data);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      }
-    };
-
-    if (token) {
-      fetchDashboardData();
+  // ปรับการเรียกข้อมูลใน useEffect
+useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      const data = await getDashboardData(token, new Date().getFullYear()); // ใช้ปีปัจจุบัน
+      setDashboard(data);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
     }
-  }, [token]);
+  };
+
+  if (token) {
+    fetchDashboardData();
+  }
+}, [token]);
+
 
   useEffect(() => {
     const charts = document.querySelectorAll('canvas');
@@ -97,10 +99,11 @@ const DashboardFrom = () => {
             "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
           ],
           datasets: [
+            
             {
-              label: "รายได้ต่อเดือน (บาท)",
-              data: dashboard.monthlyRevenue,
-              borderColor: "#FF5733",
+              label: "ยอดขายรายเดือน (บาท)",
+              data: dashboard.monthlyRevenue,  // ข้อมูลยอดขายรายเดือน
+              borderColor: "#4CAF50",
               fill: false,
               tension: 0.4,
             },
@@ -113,37 +116,36 @@ const DashboardFrom = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">📊 รายงาน</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">📊 รายงานยอดขาย</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        <DashboardCard title="📦 คำสั่งซื้อทั้งหมด" value={dashboard.totalOrders} color="from-blue-400 to-blue-600" />
-        <DashboardCard title="👥 ผู้ใช้งานทั้งหมด" value={dashboard.totalUsers} color="from-green-400 to-green-600" />
-        <DashboardCard title="🍔 เมนูทั้งหมด" value={dashboard.totalMenus} color="from-purple-400 to-purple-600" />
-        <DashboardCard title="💰 ยอดขายรวมทั้งหมด" value={dashboard.totalSales.toLocaleString()} color="from-yellow-400 to-yellow-600" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 ">
+        <DashboardCard  title="📦 คำสั่งซื้อทั้งหมด" value={dashboard.totalOrders} color="from-blue-400 to-blue-600" />
+        <DashboardCard  title="👥 ผู้ใช้งานทั้งหมด" value={dashboard.totalUsers} color="from-green-400 to-green-600" />
+        <DashboardCard  title="🍔 เมนูทั้งหมด" value={dashboard.totalMenus} color="from-purple-400 to-purple-600" />
+        <DashboardCard  title="💰 ยอดขายรวมทั้งหมด" value={dashboard.totalSales.toLocaleString()} color="from-yellow-400 to-yellow-600" />
       </div>
 
       {/* แถบเลือกกราฟ */}
-      <div className="flex justify-center mb-6 space-x-4">
+      <div className="flex">
         <button
-          className={`px-6 py-2 text-lg font-semibold text-white ${selectedChart === "revenue" ? "bg-blue-600 border-b-4 border-blue-800" : "bg-gray-400 border-b-4 border-transparent hover:border-blue-500"} rounded-t-md transition-all duration-300`}
+          className={`px-6 py-2 text-lg font-semibold  ${selectedChart === "revenue" ? "bg-white text-blue-800" : "bg-gray-400 border-b-4 border-transparent hover:border-blue-500 text-white"} rounded-t-md transition-all duration-300`}
           onClick={() => setSelectedChart("revenue")}
         >
           กราฟยอดขาย
         </button>
         <button
-          className={`px-6 py-2 text-lg font-semibold text-white ${selectedChart === "topProducts" ? "bg-blue-600 border-b-4 border-blue-800" : "bg-gray-400 border-b-4 border-transparent hover:border-blue-500"} rounded-t-md transition-all duration-300`}
+          className={`px-6 py-2 text-lg font-semibold  ${selectedChart === "topProducts" ? "bg-white text-blue-800" : "bg-gray-400 border-b-4 border-transparent hover:border-blue-500 text-white"} rounded-t-md transition-all duration-300`}
           onClick={() => setSelectedChart("topProducts")}
         >
           สินค้าขายดี
         </button>
         <button
-          className={`px-6 py-2 text-lg font-semibold text-white ${selectedChart === "orderStatus" ? "bg-blue-600 border-b-4 border-blue-800" : "bg-gray-400 border-b-4 border-transparent hover:border-blue-500"} rounded-t-md transition-all duration-300`}
+          className={`px-6 py-2 text-lg font-semibold  ${selectedChart === "orderStatus" ? "bg-white text-blue-800" : "bg-gray-400 border-b-4 border-transparent hover:border-blue-500 text-white"} rounded-t-md transition-all duration-300`}
           onClick={() => setSelectedChart("orderStatus")}
         >
-          กราฟสถานะคำสั่งซื้อ
+          สถานะคำสั่งซื้อ
         </button>
       </div>
-
 
       {/* แสดงกราฟตามตัวเลือก */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6 transition-transform">

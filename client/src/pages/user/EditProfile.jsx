@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import useSabnuaStore from '../../store/SabnuaStore';
-import { updateUser, getUser } from '../../api/user';
+import { updateUser, getUser, verifyPassword } from '../../api/user';  // เพิ่ม verifyPassword API
 import Swal from 'sweetalert2';
 
 const EditProfile = () => {
-  const { id } = useParams(); // ใช้ useParams เพื่อดึง id จาก URL
-  const token = useSabnuaStore((state) => state.token); // ดึง token จาก store
+  const { id } = useParams();
+  const token = useSabnuaStore((state) => state.token);
   const [user, setUser] = useState({
     email: '',
     name: '',
     tell: '',
-    address: '', // รวมที่อยู่ทั้งหมด
-    password: '', // เพิ่ม state สำหรับรหัสผ่านใหม่
+    address: '',
+    password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // ใช้เพื่อเปิด/ปิด Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [addressFields, setAddressFields] = useState({
     houseNo: '',
     subdistrict: '',
@@ -24,20 +24,22 @@ const EditProfile = () => {
     country: '',
     postalCode: '',
     landmark: ''
-  }); // สำหรับเก็บข้อมูลที่อยู่
+  });
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  
+  const navigate = useNavigate();
 
-  const navigate = useNavigate(); // ใช้ navigate เพื่อไปยังหน้าอื่น
-
-  // ดึงข้อมูลผู้ใช้เมื่อโหลดหน้า
   useEffect(() => {
     const fetchUserData = async () => {
       if (id) {
         setLoading(true);
         try {
-          const res = await getUser(token, id); // เรียก API ดึงข้อมูลผู้ใช้
+          const res = await getUser(token, id);
           setUser({
-            ...res.user, // ไม่ดึงรหัสผ่านมา
-            password: '', // ตั้งค่าสถานะรหัสผ่านให้เป็นค่าว่าง
+            ...res.user,
+            password: '',
           });
         } catch (err) {
           console.error('Error fetching user data:', err);
@@ -50,64 +52,94 @@ const EditProfile = () => {
         } finally {
           setLoading(false);
         }
-      } else {
-        console.error('User ID is undefined');
       }
     };
 
     fetchUserData();
-  }, [id, token]); // เมื่อ id หรือ token เปลี่ยน จะดึงข้อมูลใหม่
+  }, [id, token]);
 
-  // ฟังก์ชันจัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUser({
       ...user,
-      [name]: value, // อัปเดตข้อมูลตามชื่อของ input
+      [name]: value,
     });
   };
 
-  // ฟังก์ชันจัดการการเปลี่ยนแปลงข้อมูลที่อยู่ใน Modal
-  const handleAddressChange = (e) => {
+  const handlePasswordChange = (e) => {
     const { name, value } = e.target;
-    setAddressFields({
-      ...addressFields,
-      [name]: value, // อัปเดตข้อมูลที่อยู่ตามชื่อของ input
-    });
+    if (name === 'currentPassword') {
+      setCurrentPassword(value);
+    } else if (name === 'newPassword') {
+      setNewPassword(value);
+    } else if (name === 'confirmNewPassword') {
+      setConfirmNewPassword(value);
+    }
   };
 
-  // ฟังก์ชันจัดการการส่งข้อมูลเมื่อกดปุ่ม Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!user.name || !user.tell || !user.address) {
       Swal.fire({
         title: 'กรุณากรอกข้อมูลให้ครบถ้วน!',
-        text: 'กรุณากรอกข้อมูลทุกช่องในฟอร์ม',
         icon: 'warning',
         confirmButtonText: 'ตกลง',
       });
       return;
     }
 
-    setLoading(true);
+    // ตรวจสอบรหัสผ่านเดิม
+    if (newPassword && currentPassword) {
+      try {
+        setLoading(true);
+        const isValidPassword = await verifyPassword(token, id, currentPassword); // ตรวจสอบรหัสผ่านเดิม
+        if (!isValidPassword) {
+          Swal.fire({
+            title: 'รหัสผ่านเดิมไม่ถูกต้อง!',
+            icon: 'error',
+            confirmButtonText: 'ตกลง',
+          });
+          return;
+        }
 
+        if (newPassword !== confirmNewPassword) {
+          Swal.fire({
+            title: 'รหัสผ่านใหม่ไม่ตรงกัน!',
+            icon: 'error',
+            confirmButtonText: 'ตกลง',
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Error verifying password:', err);
+        Swal.fire({
+          title: 'เกิดข้อผิดพลาด!',
+          text: 'ไม่สามารถตรวจสอบรหัสผ่านเดิมได้',
+          icon: 'error',
+          confirmButtonText: 'ตกลง',
+        });
+        return;
+      }
+    }
+
+    setLoading(true);
     try {
-      // หากกรอกรหัสผ่านใหม่, ใช้รหัสผ่านใหม่ในข้อมูลที่จะอัปเดต
       const updatedUser = { ...user };
-      if (!updatedUser.password) {
-        delete updatedUser.password; // ลบรหัสผ่านที่เป็นค่าว่างออก
+
+      if (newPassword) {
+        updatedUser.password = newPassword;
       }
 
-      await updateUser(token, id, updatedUser); // เรียก API อัปเดตข้อมูลผู้ใช้
+      await updateUser(token, id, updatedUser);
       Swal.fire({
         title: 'สำเร็จ!',
         text: 'อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว',
         icon: 'success',
         confirmButtonText: 'ตกลง',
       });
-      navigate('/'); // ไปที่หน้าโปรไฟล์หลังจากอัปเดต
+      navigate('/');
     } catch (err) {
-      console.error('Error updating user:', err);
       Swal.fire({
         title: 'เกิดข้อผิดพลาด!',
         text: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ กรุณาลองใหม่',
@@ -119,20 +151,17 @@ const EditProfile = () => {
     }
   };
 
-  // ฟังก์ชันเปิด/ปิด Modal
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // ฟังก์ชันจัดการการบันทึกที่อยู่
   const handleSaveAddress = () => {
-    // รวมข้อมูลที่อยู่ทั้งหมดเป็นสตริงเดียว
     const address = `${addressFields.houseNo}, ${addressFields.subdistrict}, ${addressFields.district}, ${addressFields.province}, ${addressFields.country}, ${addressFields.postalCode}, ${addressFields.landmark}`;
     setUser({
       ...user,
-      address, // อัปเดตที่อยู่ใน state หลัก
+      address,
     });
-    toggleModal(); // ปิด Modal
+    toggleModal();
   };
 
   return (
@@ -163,6 +192,7 @@ const EditProfile = () => {
               />
             </div>
           </div>
+
           <div className="flex flex-col sm:flex-row sm:space-x-4">
             <div className="flex-1">
               <label htmlFor="tell" className="block text-sm font-medium text-gray-700">
@@ -180,7 +210,6 @@ const EditProfile = () => {
             </div>
           </div>
 
-          {/* แสดงที่อยู่ */}
           <div className="flex flex-col sm:flex-row sm:space-x-4">
             <div className="flex-1">
               <label htmlFor="address" className="block text-sm font-medium text-gray-700">
@@ -207,6 +236,58 @@ const EditProfile = () => {
             </div>
           </div>
 
+          {/* ฟิลด์รหัสผ่าน */}
+          <div className="flex flex-col sm:flex-row sm:space-x-4">
+            <div className="flex-1">
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+                รหัสผ่านเดิม
+              </label>
+              <input
+                type="password"
+                id="currentPassword"
+                name="currentPassword"
+                value={currentPassword}
+                onChange={handlePasswordChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                placeholder="กรอกรหัสผ่านเดิม"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:space-x-4">
+            <div className="flex-1">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                รหัสผ่านใหม่
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                value={newPassword}
+                onChange={handlePasswordChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                placeholder="กรอกรหัสผ่านใหม่"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:space-x-4">
+            <div className="flex-1">
+              <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700">
+                ยืนยันรหัสผ่านใหม่
+              </label>
+              <input
+                type="password"
+                id="confirmNewPassword"
+                name="confirmNewPassword"
+                value={confirmNewPassword}
+                onChange={handlePasswordChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                placeholder="ยืนยันรหัสผ่านใหม่"
+              />
+            </div>
+          </div>
+
           <div className="mt-6">
             <button
               type="submit"
@@ -219,7 +300,6 @@ const EditProfile = () => {
         </form>
       )}
 
-      {/* Modal สำหรับกรอกที่อยู่ */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -258,14 +338,7 @@ const EditProfile = () => {
                 className="w-full p-2 border border-gray-300 rounded-md"
                 placeholder="จังหวัด"
               />
-              <input
-                type="text"
-                name="country"
-                value={addressFields.country}
-                onChange={handleAddressChange}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="ประเทศ"
-              />
+
               <input
                 type="text"
                 name="postalCode"

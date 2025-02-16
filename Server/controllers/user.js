@@ -299,7 +299,7 @@ exports.getOrder = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
       const { id } = req.params; // ดึง id จาก URL params
-      const { password, name, tell, address } = req.body; // ข้อมูลที่ต้องการอัปเดต
+      const { currentPassword, password, name, tell, address } = req.body; // ข้อมูลที่ต้องการอัปเดต
 
       if (!id) {
           return res.status(400).json({ message: 'User ID is required!' }); // ถ้าไม่มี id ให้แสดงข้อผิดพลาด
@@ -313,10 +313,22 @@ exports.updateUser = async (req, res) => {
           return res.status(404).json({ message: 'User not found!' }); // ถ้าผู้ใช้ไม่พบให้แสดงข้อผิดพลาด
       }
 
+      // ตรวจสอบรหัสผ่านเดิม
+      if (password && !currentPassword) {
+          return res.status(400).json({ message: 'Current password is required!' });
+      }
+
+      if (currentPassword) {
+          const isPasswordValid = await bcrypt.compare(currentPassword, existingUser.password);
+          if (!isPasswordValid) {
+              return res.status(400).json({ message: 'Current password is incorrect!' }); // รหัสผ่านเดิมไม่ถูกต้อง
+          }
+      }
+
       // ถ้ามีการเปลี่ยนรหัสผ่าน, จะทำการแฮชรหัสผ่านใหม่
       let hashPassword = existingUser.password;
       if (password) {
-          hashPassword = await bcrypt.hash(password, 10);
+          hashPassword = await bcrypt.hash(password, 10); // แฮชรหัสผ่านใหม่
       }
 
       const updatedUser = await prisma.user.update({

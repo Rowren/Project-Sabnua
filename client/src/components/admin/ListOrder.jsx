@@ -10,17 +10,24 @@ const ListOrder = () => {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [deliveryFilter, setDeliveryFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState('newest'); // Default sorting
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    handleGetOrder(token, statusFilter, deliveryFilter);
-  }, [statusFilter, deliveryFilter]);
+    handleGetOrder(token, statusFilter, deliveryFilter, sortOrder);
+  }, [statusFilter, deliveryFilter, sortOrder]);
 
-  const handleGetOrder = async (token, statusFilter, deliveryFilter) => {
+  const handleGetOrder = async (token, statusFilter, deliveryFilter, sortOrder) => {
     setLoading(true);
     try {
       const res = await getOrdersAdmin(token, statusFilter, deliveryFilter);
-      setOrders(res.data);
+      let sortedOrders = res.data;
+      if (sortOrder === 'newest') {
+        sortedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else {
+        sortedOrders.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      }
+      setOrders(sortedOrders);
     } catch (err) {
       console.error('เกิดข้อผิดพลาด', err);
     } finally {
@@ -62,7 +69,7 @@ const ListOrder = () => {
       <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">รายการคำสั่งซื้อทั้งหมด</h2>
 
       {/* ฟิลเตอร์สถานะ */}
-      <div className="flex gap-4 mb-6 flex-wrap">
+      <div className="flex gap-4 mb-6 flex-wrap justify-between lg:flex-nowrap">
         <div className="flex-1 min-w-[200px]">
           <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700">สถานะคำสั่งซื้อ</label>
           <select
@@ -93,6 +100,20 @@ const ListOrder = () => {
             <option value="DELIVERY">จัดส่งถึงบ้าน</option>
           </select>
         </div>
+
+        {/* ฟิลเตอร์เรียงลำดับ */}
+        <div className="flex-1 min-w-[200px]">
+          <label htmlFor="sortOrder" className="block text-sm font-medium text-gray-700">เรียงลำดับ</label>
+          <select
+            id="sortOrder"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"
+          >
+            <option value="newest">ล่าสุด - เก่าสุด</option>
+            <option value="oldest">เก่าสุด - ล่าสุด</option>
+          </select>
+        </div>
       </div>
 
       {/* สถานะการโหลด */}
@@ -106,24 +127,24 @@ const ListOrder = () => {
           <table className="min-w-full bg-white table-auto">
             <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold">ลำดับ</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">รหัสรายการ</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">ผู้ใช้งาน</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">วันที่</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">รายการอาหาร</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">รวม</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">สถานะ</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">วิธีการจัดส่ง</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">ที่อยู่จัดส่ง</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">จัดการ</th>
               </tr>
             </thead>
             <tbody className="bg-gray-50">
               {orders?.map((order, index) => (
                 <tr key={index} className="hover:bg-gray-100 transition-colors duration-200">
-                  <td className="px-6 py-4 text-center text-sm text-gray-700">{index + 1}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700 text-center">{order.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
                     <p className="font-medium text-gray-900">{order.orderedBy.name}</p>
                     <p className="text-sm text-gray-600">{order.orderedBy.email}</p>
-                    <p className="text-sm text-gray-600">{order.orderedBy.address}</p>
                     <p className="text-sm text-gray-600">{order.orderedBy.tell}</p>
                   </td>
 
@@ -141,15 +162,14 @@ const ListOrder = () => {
                   <td className="px-6 py-4 text-sm text-gray-700">{calculateTotalWithShipping(order)}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        order.orderStatus === 'รอดำเนินการ'
-                          ? 'bg-yellow-200 text-yellow-800'
-                          : order.orderStatus === 'กำลังจัดส่ง'
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${order.orderStatus === 'รอดำเนินการ'
+                        ? 'bg-yellow-200 text-yellow-800'
+                        : order.orderStatus === 'กำลังจัดส่ง'
                           ? 'bg-blue-200 text-blue-800'
                           : order.orderStatus === 'จัดส่งสำเร็จ'
-                          ? 'bg-green-200 text-green-800'
-                          : 'bg-red-200 text-red-800'
-                      }`}
+                            ? 'bg-green-200 text-green-800'
+                            : 'bg-red-200 text-red-800'
+                        }`}
                     >
                       {order.orderStatus}
                     </span>
@@ -157,6 +177,9 @@ const ListOrder = () => {
 
                   <td className="px-6 py-4 text-sm text-gray-700">
                     {order.deliveryType === 'PICKUP' ? 'รับที่ร้าน' : 'จัดส่งถึงบ้าน'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {order.deliveryAddress ? order.deliveryAddress : 'รับที่ร้าน'}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-gray-700">

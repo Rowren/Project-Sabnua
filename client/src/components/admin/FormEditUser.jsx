@@ -14,6 +14,7 @@ const FormEditUser = () => {
         role: '',
         enabled: true,
     });
+    const [newPassword, setNewPassword] = useState(''); // เพิ่ม state สำหรับรหัสผ่านใหม่
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -47,6 +48,10 @@ const FormEditUser = () => {
         });
     };
 
+    const handlePasswordChange = (e) => {
+        setNewPassword(e.target.value);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!user.name || !user.email || !user.tell || !user.role) {
@@ -59,10 +64,25 @@ const FormEditUser = () => {
             return;
         }
 
+        if (newPassword && newPassword.length < 6) {
+            Swal.fire({
+                title: 'รหัสผ่านสั้นเกินไป!',
+                text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+                icon: 'warning',
+                confirmButtonText: 'ตกลง',
+            });
+            return;
+        }
+
         setLoading(true);
 
         try {
-            await updateUser(token, id, user);
+            const updatedData = { ...user };
+            if (newPassword) {
+                updatedData.password = newPassword;
+            }
+
+            await updateUser(token, id, updatedData);
             Swal.fire({
                 title: 'สำเร็จ!',
                 text: 'อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว',
@@ -147,6 +167,20 @@ const FormEditUser = () => {
                             </select>
                         </div>
                     </div>
+
+                    {/* ช่องกรอกรหัสผ่านใหม่ */}
+                    <div>
+                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">รหัสผ่านใหม่ (เว้นว่างหากไม่ต้องการเปลี่ยน)</label>
+                        <input
+                            type="password"
+                            id="newPassword"
+                            name="newPassword"
+                            value={newPassword}
+                            onChange={handlePasswordChange}
+                            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
+                        />
+                    </div>
+
                     <div>
                         <label htmlFor="enabled" className="block text-sm font-medium text-gray-700">สถานะ</label>
                         <input

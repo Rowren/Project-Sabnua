@@ -1,5 +1,7 @@
 const prisma = require("../Config/prisma");
 const { user } = require("../Config/prisma");
+const bcrypt = require('bcryptjs'); // หรือ 'bcrypt'
+
 
 exports.changeOrderStatus = async (req, res) => {
   try {
@@ -21,7 +23,8 @@ exports.changeOrderStatus = async (req, res) => {
 
 exports.getOrderAdmin = async (req, res) => {
   try {
-    const { statusFilter, deliveryFilter, startDate, endDate } = req.query;
+    const { statusFilter, deliveryFilter, startDate, endDate, sortOrder } =
+      req.query;
 
     let whereCondition = {};
 
@@ -30,7 +33,7 @@ exports.getOrderAdmin = async (req, res) => {
       whereCondition.orderStatus = statusFilter;
     }
 
-    // Filter by delivery method (pickup or delivery)
+    // ไม่ต้องแปลงค่า deliveryFilter ให้ตรงกับ Frontend
     if (deliveryFilter) {
       whereCondition.deliveryMethod = deliveryFilter;
     }
@@ -38,16 +41,19 @@ exports.getOrderAdmin = async (req, res) => {
     // Filter by date range
     if (startDate && endDate) {
       whereCondition.createdAt = {
-        gte: new Date(startDate), // greater than or equal to start date
-        lte: new Date(endDate), // less than or equal to end date
+        gte: new Date(startDate),
+        lte: new Date(endDate),
       };
     }
 
+    // Sorting order (default: latest first)
+    const orderBy =
+      sortOrder === "oldest" ? { createdAt: "asc" } : { createdAt: "desc" };
+
+    // Fetch orders from database
     const orders = await prisma.order.findMany({
       where: whereCondition,
-      orderBy: {
-        createdAt: "desc", // Order by the latest first
-      },
+      orderBy,
       include: {
         products: {
           include: {
@@ -66,7 +72,7 @@ exports.getOrderAdmin = async (req, res) => {
       },
     });
 
-    // Formatting delivery method and address
+    // Formatting data before sending to frontend
     const formattedOrders = orders.map((order) => ({
       ...order,
       deliveryType:
@@ -75,69 +81,8 @@ exports.getOrderAdmin = async (req, res) => {
         order.deliveryMethod === "DELIVERY" ? order.deliveryAddress : null,
     }));
 
-    res.json(formattedOrders); // Return the filtered and formatted data
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Server Error" });
-  }
-};
-exports.getOrderAdmin = async (req, res) => {
-  try {
-    const { statusFilter, deliveryFilter, startDate, endDate } = req.query;
-
-    let whereCondition = {};
-
-    // Filter by order status
-    if (statusFilter) {
-      whereCondition.orderStatus = statusFilter;
-    }
-
-    // Filter by delivery method (pickup or delivery)
-    if (deliveryFilter) {
-      whereCondition.deliveryMethod = deliveryFilter;
-    }
-
-    // Filter by date range
-    if (startDate && endDate) {
-      whereCondition.createdAt = {
-        gte: new Date(startDate), // greater than or equal to start date
-        lte: new Date(endDate), // less than or equal to end date
-      };
-    }
-
-    const orders = await prisma.order.findMany({
-      where: whereCondition,
-      orderBy: {
-        createdAt: "desc", // Order by the latest first
-      },
-      include: {
-        products: {
-          include: {
-            product: true,
-          },
-        },
-        orderedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            address: true,
-            tell: true,
-          },
-        },
-      },
-    });
-
-    // Formatting delivery method and address
-    const formattedOrders = orders.map((order) => ({
-      ...order,
-      deliveryType:
-        order.deliveryMethod === "PICKUP" ? "รับที่ร้าน" : "จัดส่งถึงบ้าน",
-      deliveryAddress:
-        order.deliveryMethod === "DELIVERY" ? order.deliveryAddress : null,
-    }));
-
-    res.json(formattedOrders); // Return the filtered and formatted data
+    console.log("Orders sent to frontend:", formattedOrders);
+    res.json(formattedOrders);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Server Error" });
@@ -192,7 +137,7 @@ exports.getUserById = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params; // ดึง id จาก URL พารามิเตอร์
-    const { enabled, role, name, email, tell, address } = req.body;
+    const { enabled, role, name, email, tell, address, password } = req.body;
 
     const updateData = {};
     if (enabled !== undefined) updateData.enabled = enabled;
@@ -201,6 +146,13 @@ exports.updateUser = async (req, res) => {
     if (email) updateData.email = email;
     if (tell) updateData.tell = tell;
     if (address) updateData.address = address;
+
+    // ตรวจสอบว่ามี password และต้องทำการแฮช
+    if (password) {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      updateData.password = hashedPassword;
+    }
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ message: "ไม่มีข้อมูลสำหรับอัปเดต" });
@@ -236,6 +188,8 @@ exports.deleteUser = async (req, res) => {
 };
 
 exports.getDashboardData = async (req, res) => {
+  const { year } = req.query;  // รับปีจาก query
+
   try {
     // ✅ จำนวนคำสั่งซื้อทั้งหมด
     const totalOrders = await prisma.order.count();
@@ -279,26 +233,27 @@ exports.getDashboardData = async (req, res) => {
 
     // ✅ รายได้ต่อเดือนในปี
     const revenuePerMonth = await prisma.order.groupBy({
-      by: ['createdAt'],
+      by: ["createdAt"],
       _sum: {
         amount: true,
       },
       where: {
         createdAt: {
-          gte: new Date('2023-01-01'), // ปีเริ่มต้น
-          lt: new Date('2024-01-01'),  // ปีสิ้นสุด
+          gte: new Date(`${year}-01-01`), // ปีเริ่มต้นที่ผู้ใช้เลือก
+          lt: new Date(`${Number(year) + 1}-01-01`), // ปีสิ้นสุด
         },
       },
       orderBy: {
-        createdAt: 'asc',
+        createdAt: "asc",
       },
     });
 
     // แยกรายได้ออกเป็น 12 เดือน (เพิ่มเงื่อนไขตรวจสอบเดือนที่เป็น 0 แล้วให้ตั้งเป็น 0)
-    const monthlyRevenue = Array(12).fill(0);  // เตรียมอาร์เรย์ที่มีค่า 0 สำหรับ 12 เดือน
-    revenuePerMonth.forEach(item => {
-      const month = new Date(item.createdAt).getMonth();  // คำนวณเดือนจากวันที่
-      monthlyRevenue[month] = item._sum.amount || 0;  // ตั้งยอดขายในเดือนนั้นๆ
+    const monthlyRevenue = Array(12).fill(0); // เตรียมอาร์เรย์ที่มีค่า 0 สำหรับ 12 เดือน
+
+    revenuePerMonth.forEach((item) => {
+      const month = new Date(item.createdAt).getMonth(); // คำนวณเดือนจากวันที่
+      monthlyRevenue[month] += Number(item._sum.amount) || 0; // บวกยอดขายในเดือนนั้นๆ
     });
 
     // ส่งข้อมูลทั้งหมดกลับไปที่ frontend
@@ -306,13 +261,13 @@ exports.getDashboardData = async (req, res) => {
       totalOrders,
       totalUsers,
       totalMenus,
-      totalSales: totalSales._sum.amount || 0, // ถ้าไม่มีข้อมูลให้แสดงเป็น 0
+      totalSales: Number(totalSales._sum.amount) || 0, // ถ้าไม่มีข้อมูลให้แสดงเป็น 0 และแปลงเป็น Number
       pendingOrders,
       shippingOrders,
       completedOrders,
       canceledOrders,
       topSellingProducts,
-      monthlyRevenue,  // ส่งข้อมูลยอดขายแต่ละเดือน
+      monthlyRevenue, // ส่งข้อมูลยอดขายแต่ละเดือน
     });
   } catch (err) {
     console.error("Error getting dashboard data:", err);
