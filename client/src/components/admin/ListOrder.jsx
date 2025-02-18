@@ -38,13 +38,20 @@ const ListOrder = () => {
   const handleChangeOrderStatus = async (token, orderId, orderStatus) => {
     try {
       const res = await changeOrderStatus(token, orderId, orderStatus);
+      
+      // Update the orders state immediately to reflect the status change
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId ? { ...order, orderStatus } : order
+        )
+      );
+      
       Swal.fire({
         icon: 'success',
         title: 'สถานะคำสั่งซื้อถูกเปลี่ยนเรียบร้อยแล้ว',
         text: `สถานะคำสั่งซื้อ ${orderId} เปลี่ยนเป็น ${orderStatus}`,
         confirmButtonText: 'ตกลง',
       });
-      handleGetOrder(token, statusFilter, deliveryFilter);
     } catch (err) {
       console.error('เกิดข้อผิดพลาด', err);
       Swal.fire({
@@ -55,6 +62,7 @@ const ListOrder = () => {
       });
     }
   };
+  
 
   const calculateTotalWithShipping = (order) => {
     let total = order.cartTotal;
@@ -66,7 +74,7 @@ const ListOrder = () => {
 
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">รายการคำสั่งซื้อทั้งหมด</h2>
+      <h2 className="text-3xl font-bold text-yellow-600 mb-6 text-center">รายการคำสั่งซื้อทั้งหมด</h2>
 
       {/* ฟิลเตอร์สถานะ */}
       <div className="flex gap-4 mb-6 flex-wrap justify-between lg:flex-nowrap">
@@ -176,8 +184,9 @@ const ListOrder = () => {
                   </td>
 
                   <td className="px-6 py-4 text-sm text-gray-700">
-                    {order.deliveryType === 'PICKUP' ? 'รับที่ร้าน' : 'จัดส่งถึงบ้าน'}
+                    {order.deliveryMethod === 'PICKUP' ? 'รับที่ร้าน' : 'จัดส่งถึงบ้าน'}
                   </td>
+
                   <td className="px-6 py-4 text-sm text-gray-700">
                     {order.deliveryAddress ? order.deliveryAddress : 'รับที่ร้าน'}
                   </td>

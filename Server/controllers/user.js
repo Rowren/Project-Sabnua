@@ -1,10 +1,7 @@
 const { Prisma } = require("@prisma/client");
 const prisma = require("../Config/prisma");
 const { user } = require("../Config/prisma");
-const bcrypt = require('bcryptjs'); // หรือ 'bcrypt'
-
-
-
+const bcrypt = require("bcryptjs"); // หรือ 'bcrypt'
 
 exports.userCart = async (req, res) => {
   try {
@@ -175,7 +172,9 @@ exports.saveOrder = async (req, res) => {
 
     // ตรวจสอบว่า payload และ paymentIntent มีอยู่หรือไม่
     if (!req.body.payload || !req.body.payload.paymentIntent) {
-      return res.status(400).json({ error: 'Missing paymentIntent in request body payload' });
+      return res
+        .status(400)
+        .json({ error: "Missing paymentIntent in request body payload" });
     }
 
     const { id, amount, status, currency } = req.body.payload.paymentIntent;
@@ -183,31 +182,37 @@ exports.saveOrder = async (req, res) => {
 
     // ✅ ตรวจสอบว่า deliveryMethod มีค่าหรือไม่
     if (!deliveryMethod) {
-      return res.status(400).json({ error: 'Missing delivery method in request body payload' });
+      return res
+        .status(400)
+        .json({ error: "Missing delivery method in request body payload" });
     }
 
     // ✅ ตรวจสอบค่า deliveryMethod ว่าถูกต้องหรือไม่
     if (!["PICKUP", "DELIVERY"].includes(deliveryMethod.toUpperCase())) {
-      return res.status(400).json({ error: 'Invalid delivery method' });
+      return res.status(400).json({ error: "Invalid delivery method" });
     }
 
     // ✅ ตรวจสอบสถานะการชำระเงิน
     if (status !== "succeeded") {
-      return res.status(400).json({ error: 'Payment failed, please try again' });
+      return res
+        .status(400)
+        .json({ error: "Payment failed, please try again" });
     }
 
     // ✅ ดึงข้อมูล user
     const user = await prisma.user.findUnique({
       where: { id: Number(req.user.id) },
-      select: { address: true }
+      select: { address: true },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    // ✅ กำหนด deliveryAddress
-    let deliveryAddress = deliveryMethod.toUpperCase() === "DELIVERY" ? user.address || null : "รับที่ร้าน";
+    // ✅ กำหนด deliveryAddress ตาม deliveryMethod
+    let deliveryAddress =
+      deliveryMethod.toUpperCase() === "DELIVERY"
+        ? user.address || null
+        : "รับที่ร้าน";
 
     if (deliveryMethod.toUpperCase() === "DELIVERY" && !user.address) {
       return res.status(400).json({ error: "No address found for delivery" });
@@ -263,7 +268,7 @@ exports.saveOrder = async (req, res) => {
 
     res.json({ ok: true, order });
   } catch (err) {
-    console.error('Error in saveOrder:', err);
+    console.error("Error in saveOrder:", err);
     res.status(500).json({ message: "Server Error" });
   }
 };
@@ -295,97 +300,99 @@ exports.getOrder = async (req, res) => {
   }
 };
 
-
 exports.updateUser = async (req, res) => {
   try {
-      const { id } = req.params; // ดึง id จาก URL params
-      const { currentPassword, password, name, tell, address } = req.body; // ข้อมูลที่ต้องการอัปเดต
+    const { id } = req.params; // ดึง id จาก URL params
+    const { currentPassword, password, name, tell, address } = req.body; // ข้อมูลที่ต้องการอัปเดต
 
-      if (!id) {
-          return res.status(400).json({ message: 'User ID is required!' }); // ถ้าไม่มี id ให้แสดงข้อผิดพลาด
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required!" }); // ถ้าไม่มี id ให้แสดงข้อผิดพลาด
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id: parseInt(id) }, // แปลง id ให้เป็นตัวเลข
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found!" }); // ถ้าผู้ใช้ไม่พบให้แสดงข้อผิดพลาด
+    }
+
+    // ตรวจสอบรหัสผ่านเดิม
+    if (password && !currentPassword) {
+      return res.status(400).json({ message: "Current password is required!" });
+    }
+
+    if (currentPassword) {
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        existingUser.password
+      );
+      if (!isPasswordValid) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect!" });
       }
+    }
 
-      const existingUser = await prisma.user.findUnique({
-          where: { id: parseInt(id) }, // แปลง id ให้เป็นตัวเลข
-      });
+    // ถ้ามีการเปลี่ยนรหัสผ่าน, จะทำการแฮชรหัสผ่านใหม่
+    let hashPassword = existingUser.password;
+    if (password) {
+      hashPassword = await bcrypt.hash(password, 10); // แฮชรหัสผ่านใหม่
+    }
 
-      if (!existingUser) {
-          return res.status(404).json({ message: 'User not found!' }); // ถ้าผู้ใช้ไม่พบให้แสดงข้อผิดพลาด
-      }
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: {
+        password: hashPassword,
+        name: name || existingUser.name,
+        tell: tell || existingUser.tell,
+        address: address || existingUser.address,
+      },
+    });
 
-      // ตรวจสอบรหัสผ่านเดิม
-      if (password && !currentPassword) {
-          return res.status(400).json({ message: 'Current password is required!' });
-      }
-
-      if (currentPassword) {
-          const isPasswordValid = await bcrypt.compare(currentPassword, existingUser.password);
-          if (!isPasswordValid) {
-              return res.status(400).json({ message: 'Current password is incorrect!' }); // รหัสผ่านเดิมไม่ถูกต้อง
-          }
-      }
-
-      // ถ้ามีการเปลี่ยนรหัสผ่าน, จะทำการแฮชรหัสผ่านใหม่
-      let hashPassword = existingUser.password;
-      if (password) {
-          hashPassword = await bcrypt.hash(password, 10); // แฮชรหัสผ่านใหม่
-      }
-
-      const updatedUser = await prisma.user.update({
-          where: { id: parseInt(id) },
-          data: {
-              password: hashPassword,
-              name: name || existingUser.name,
-              tell: tell || existingUser.tell,
-              address: address || existingUser.address,
-          },
-      });
-
-      res.status(200).json({
-          message: 'User updated successfully!',
-          user: {
-              id: updatedUser.id,
-              name: updatedUser.name,
-              tell: updatedUser.tell,
-              address: updatedUser.address,
-          },
-      });
+    res.status(200).json({
+      message: "User updated successfully!",
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        tell: updatedUser.tell,
+        address: updatedUser.address,
+      },
+    });
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Server Error' });
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
-
-
 exports.getUserById = async (req, res) => {
   try {
-      const { id } = req.params;  // ดึงค่า id จาก URL params
-      if (!id) {
-          return res.status(400).json({ message: "กรุณาระบุ ID ของผู้ใช้" });
-      }
+    const { id } = req.params; // ดึงค่า id จาก URL params
+    if (!id) {
+      return res.status(400).json({ message: "กรุณาระบุ ID ของผู้ใช้" });
+    }
 
-      // ค้นหาผู้ใช้ในฐานข้อมูลตาม ID
-      const user = await prisma.user.findUnique({
-          where: {
-              id: parseInt(id),  // ใช้ parseInt เพื่อแปลงค่า id เป็นตัวเลข
-          },
-      });
+    // ค้นหาผู้ใช้ในฐานข้อมูลตาม ID
+    const user = await prisma.user.findUnique({
+      where: {
+        id: parseInt(id), // ใช้ parseInt เพื่อแปลงค่า id เป็นตัวเลข
+      },
+    });
 
-      if (!user) {
-          return res.status(404).json({ message: "ไม่พบผู้ใช้" });
-      }
+    if (!user) {
+      return res.status(404).json({ message: "ไม่พบผู้ใช้" });
+    }
 
-      res.status(200).json({ user });
+    res.status(200).json({ user });
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้" });
+    console.error(err);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้" });
   }
 };
 
 exports.getUserAddress = async (req, res) => {
   try {
-    const { id } = req.params;  // ดึงค่า id จาก URL params
+    const { id } = req.params; // ดึงค่า id จาก URL params
     if (!id) {
       return res.status(400).json({ message: "กรุณาระบุ ID ของผู้ใช้" });
     }
@@ -393,7 +400,7 @@ exports.getUserAddress = async (req, res) => {
     // ค้นหาผู้ใช้ในฐานข้อมูลและดึงที่อยู่
     const user = await prisma.user.findUnique({
       where: {
-        id: parseInt(id),  // ใช้ parseInt เพื่อแปลงค่า id เป็นตัวเลข
+        id: parseInt(id), // ใช้ parseInt เพื่อแปลงค่า id เป็นตัวเลข
       },
     });
 

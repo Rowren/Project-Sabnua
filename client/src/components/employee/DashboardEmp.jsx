@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getDashboardData } from "../../api/admin";
+import { getDashboardData } from "../../api/employee";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -27,7 +27,7 @@ ChartJS.register(
   PointElement
 );
 
-const DashboardFrom = () => {
+const DashboardEmp = () => {
   const [dashboard, setDashboard] = useState(null);
   const [selectedChart, setSelectedChart] = useState("revenue");
   const token = useSabnuaStore((state) => state.token);
@@ -116,7 +116,7 @@ useEffect(() => {
 
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6"> 
-      <h1 className="text-3xl font-bold text-yellow-600 mb-6 text-center">📊 รายงานยอดขาย</h1>
+      <h1 className="text-3xl font-semibold text-yellow-700 mb-6 text-center">📊 รายงานยอดขาย</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 ">
         <DashboardCard  title="📦 คำสั่งซื้อทั้งหมด" value={dashboard.totalOrders} color="from-blue-400 to-blue-600" />
@@ -177,4 +177,4 @@ const DashboardCard = ({ title, value, color }) => (
   </div>
 );
 
-export default DashboardFrom;
+export default DashboardEmp;

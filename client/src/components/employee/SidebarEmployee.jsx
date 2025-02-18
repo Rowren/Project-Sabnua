@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import useSabnuaStore from "../../store/SabnuaStore";
 
-const SidebarAdmin = ({ isOpen, closeSidebar }) => {
+const SidebarEmployee = ({ isOpen, closeSidebar }) => {
   const actionLogout = useSabnuaStore((s) => s.actionLogout);
   const navigate = useNavigate(); // ✅ ใช้ useNavigate
 
@@ -39,9 +39,8 @@ const SidebarAdmin = ({ isOpen, closeSidebar }) => {
 
       {/* Menu */}
       <nav className="flex-1 p-4 space-y-3">
-        <SidebarLink to="/admin" icon={<FaChartBar size={24} />} text="รายงานยอดขาย" />
+        <SidebarLink to="/employee" icon={<FaChartBar size={24} />} text="รายงานยอดขาย" />
         <SidebarLink to="manage" icon={<FaUsers size={24} />} text="จัดการผู้ใช้งาน" />
-        <SidebarLink to="category" icon={<FaThLarge size={24} />} text="ประเภทอาหาร" />
         <SidebarLink to="product" icon={<FaList size={24} />} text="รายการอาหาร" />
         <SidebarLink to="orders" icon={<FaShoppingCart size={24} />} text="จัดการรายการสั่งซื้อ" />
       </nav>
@@ -62,21 +61,20 @@ const SidebarAdmin = ({ isOpen, closeSidebar }) => {
 
 // ✅ Component ย่อย SidebarLink
 const SidebarLink = ({ to, icon, text }) => {
-  return (
-    <NavLink
-      to={to}
-      end // ✅ เพิ่ม end เพื่อให้ไม่ active ซ้อนกัน
-      className={({ isActive }) =>
-        `flex items-center space-x-2 p-4 rounded transition ${
-          isActive ? "bg-orange-600 text-white" : "text-gray-200 hover:bg-orange-400 hover:text-white"
-        }`
-      }
-    >
-      {icon}
-      <span>{text}</span>
-    </NavLink>
-  );
-};
-
-
-export default SidebarAdmin;
+    return (
+      <NavLink
+        to={to}
+        end // ✅ เพิ่ม end เพื่อให้ไม่ active ซ้อนกัน
+        className={({ isActive }) =>
+          `flex items-center space-x-2 p-4 rounded transition ${
+            isActive ? "bg-orange-600 text-white" : "text-gray-200 hover:bg-orange-400 hover:text-white"
+          }`
+        }
+      >
+        {icon}
+        <span>{text}</span>
+      </NavLink>
+    );
+  };
+  
+export default SidebarEmployee;

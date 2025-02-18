@@ -75,11 +75,12 @@ export const getOrder = async (token) => {
     }
 };
 
+
 export const updateUser = async (token, id, form) => {
     try {
         const res = await axios.put(`http://localhost:5004/api/users/${id}`, form, {
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${token}`, // ส่ง token ไปใน header
             },
         });
         console.log("User updated successfully:", res.data);
@@ -89,6 +90,8 @@ export const updateUser = async (token, id, form) => {
         throw error;
     }
 };
+
+
 
 export const getUser = async (token, id) => {
     try {
@@ -104,7 +107,6 @@ export const getUser = async (token, id) => {
         throw error;
     }
 };
-
 
 
 // ฟังก์ชัน getAddress

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getUserById, updateUser } from '../../api/admin';
+import { getUserById, updateUserEmp } from '../../api/employee';
 import useSabnuaStore from '../../store/SabnuaStore';
 import Swal from 'sweetalert2';
 
-const FormEditUser = () => {
+const FormEditUserEmp = () => {
     const { id } = useParams();
     const token = useSabnuaStore((state) => state.token);
     const [user, setUser] = useState({
@@ -54,7 +54,7 @@ const FormEditUser = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!user.name || !user.email || !user.tell || !user.role) {
+        if (!user.name || !user.email || !user.tell) {
             Swal.fire({
                 title: 'กรุณากรอกข้อมูลให้ครบถ้วน!',
                 text: 'กรุณากรอกข้อมูลทุกช่องในฟอร์ม',
@@ -64,8 +64,6 @@ const FormEditUser = () => {
             return;
         }
 
-        
-
         setLoading(true);
 
         try {
@@ -74,14 +72,14 @@ const FormEditUser = () => {
                 updatedData.password = newPassword;
             }
 
-            await updateUser(token, id, updatedData);
+            await updateUserEmp(token, id, updatedData);
             Swal.fire({
                 title: 'สำเร็จ!',
                 text: 'อัปเดตข้อมูลผู้ใช้เรียบร้อยแล้ว',
                 icon: 'success',
                 confirmButtonText: 'ตกลง',
             });
-            navigate('/admin/manage');
+            navigate('/employee/manage');
         } catch (err) {
             console.error('ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้', err);
             Swal.fire({
@@ -96,7 +94,7 @@ const FormEditUser = () => {
     };
 
     return (
-        <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
+        <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6"> 
             <h1 className="text-3xl font-bold text-yellow-600 mb-6 text-center">แก้ไขข้อมูลผู้ใช้งาน</h1>
             {loading ? (
                 <div className="flex justify-center items-center py-6">
@@ -143,21 +141,17 @@ const FormEditUser = () => {
                                 required
                             />
                         </div>
-                        <div className="flex-1">
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700">สิทธิ์</label>
-                            <select
-                                id="role"
-                                name="role"
-                                value={user.role}
-                                onChange={handleInputChange}
-                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500"
-                                required
-                            >
-                                <option value="admin">ผู้ดูแลระบบ</option>
-                                <option value="employee">พนักงาน</option>
-                                <option value="user">ผู้ใช้งาน</option>
-                            </select>
-                        </div>
+                    </div>
+
+                    {/* Remove the role field */}
+                    <div>
+                        <label htmlFor="role" className="block text-sm font-medium text-gray-700">สิทธิ์</label>
+                        <input
+                            type="text"
+                            value={user.role === 'admin' ? 'ผู้ดูแลระบบ' : user.role === 'employee' ? 'พนักงาน' : 'ผู้ใช้งาน'}
+                            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-200"
+                            readOnly
+                        />
                     </div>
 
                     {/* ช่องกรอกรหัสผ่านใหม่ */}
@@ -200,4 +194,4 @@ const FormEditUser = () => {
     );
 };
 
-export default FormEditUser;
+export default FormEditUserEmp;

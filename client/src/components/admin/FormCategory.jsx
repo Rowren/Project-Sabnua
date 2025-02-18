@@ -68,12 +68,12 @@ const FormCategory = () => {
 
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <h1 className="text-2xl font-bold mb-4 text-center">จัดการหมวดหมู่</h1>
+      <h1 className="text-3xl font-bold text-yellow-600 mb-6 text-center">จัดการหมวดหมู่</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+          <h2 className="text-xl font-semibold text-yellow-600 mb-4 text-center" htmlFor="name">
             ชื่อหมวดหมู่
-          </label>
+          </h2>
           <input
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             type="text"
@@ -92,7 +92,7 @@ const FormCategory = () => {
         </button>
       </form>
 
-      <h2 className="text-xl font-bold mt-6 text-center">รายการหมวดหมู่</h2>
+      <h2 className="text-xl font-semibold text-yellow-600 mb-4 text-center">รายการหมวดหมู่</h2>
       <ul className="mt-4 space-y-2">
         {category && category.length > 0 ? (
           category.map((cat) => (

@@ -87,6 +87,24 @@ export const getUserById = async (token, id) => {
     }
 };
 
+export const createUser = async (token, form) => {
+    try {
+        const res = await axios.post(
+            'http://localhost:5004/api/admin/create-user', // URL สำหรับสร้างผู้ใช้
+            form, // ข้อมูลที่ต้องการสร้าง
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return res;
+    } catch (error) {
+        console.error("ข้อผิดพลาดในการสร้างผู้ใช้:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
 
 // ฟังก์ชันสำหรับอัปเดตข้อมูลผู้ใช้
 export const updateUser = async (token, id, form) => {

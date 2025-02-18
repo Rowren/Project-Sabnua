@@ -10,11 +10,13 @@ const {
   updateUser, 
   deleteUser, 
   getUserById, 
-  getDashboardData
+  getDashboardData,
+  createUser
 } = require('../controllers/admin');
 
 // Routes สำหรับผู้ใช้
 router.get('/admin/users', authCheck, adminCheck, listUsers);
+router.post('/admin/create-user', authCheck, adminCheck, createUser);
 router.get('/admin/user/:id', authCheck, adminCheck, getUserById);
 router.put('/admin/update-user/:id', authCheck, adminCheck, updateUser);
 router.delete('/admin/remove-user/:id', authCheck, adminCheck, deleteUser);

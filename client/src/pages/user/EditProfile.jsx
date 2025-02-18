@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import useSabnuaStore from '../../store/SabnuaStore';
-import { updateUser, getUser, verifyPassword } from '../../api/user';  // เพิ่ม verifyPassword API
+import { updateUser, getUser } from '../../api/user';  
 import Swal from 'sweetalert2';
 
 const EditProfile = () => {
@@ -79,7 +79,7 @@ const EditProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!user.name || !user.tell || !user.address) {
       Swal.fire({
         title: 'กรุณากรอกข้อมูลให้ครบถ้วน!',
@@ -88,49 +88,39 @@ const EditProfile = () => {
       });
       return;
     }
-
-    // ตรวจสอบรหัสผ่านเดิม
+  
+    if (newPassword && currentPassword === '') {
+      Swal.fire({
+        title: 'กรุณากรอกรหัสผ่านเดิม!',
+        icon: 'warning',
+        confirmButtonText: 'ตกลง',
+      });
+      return;
+    }
+  
     if (newPassword && currentPassword) {
-      try {
-        setLoading(true);
-        const isValidPassword = await verifyPassword(token, id, currentPassword); // ตรวจสอบรหัสผ่านเดิม
-        if (!isValidPassword) {
-          Swal.fire({
-            title: 'รหัสผ่านเดิมไม่ถูกต้อง!',
-            icon: 'error',
-            confirmButtonText: 'ตกลง',
-          });
-          return;
-        }
-
-        if (newPassword !== confirmNewPassword) {
-          Swal.fire({
-            title: 'รหัสผ่านใหม่ไม่ตรงกัน!',
-            icon: 'error',
-            confirmButtonText: 'ตกลง',
-          });
-          return;
-        }
-      } catch (err) {
-        console.error('Error verifying password:', err);
+      if (newPassword !== confirmNewPassword) {
         Swal.fire({
-          title: 'เกิดข้อผิดพลาด!',
-          text: 'ไม่สามารถตรวจสอบรหัสผ่านเดิมได้',
+          title: 'รหัสผ่านใหม่ไม่ตรงกัน!',
           icon: 'error',
           confirmButtonText: 'ตกลง',
         });
         return;
       }
     }
-
+  
     setLoading(true);
     try {
       const updatedUser = { ...user };
-
+  
       if (newPassword) {
         updatedUser.password = newPassword;
       }
-
+  
+      if (currentPassword) {
+        updatedUser.currentPassword = currentPassword;
+      }
+  
       await updateUser(token, id, updatedUser);
       Swal.fire({
         title: 'สำเร็จ!',
@@ -150,6 +140,8 @@ const EditProfile = () => {
       setLoading(false);
     }
   };
+  
+  
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);

@@ -94,7 +94,7 @@ const Navbar = () => {
                     className="absolute mt-2 top-full right-0 bg-white shadow-md rounded-md w-48"
                   >
                     <Link
-                      to={`user/update/${user.id}`}
+                      to={`/user/update/${user.id}`}
                       className="block p-3 hover:bg-yellow-100"
                     >
                       แก้ไขข้อมูลส่วนตัว

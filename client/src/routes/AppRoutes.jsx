@@ -22,6 +22,16 @@ import Payment from '../pages/user/Payment';
 import ManageOrders from '../pages/admin/ManageOrders';
 import EditUser from '../pages/admin/EditUser';
 import EditProfile from '../pages/user/EditProfile';
+import ProtectRouteEmployee from './ProtectRouteEmployee';
+import DashBoardEmp from '../pages/employee/DashBoardEmp';
+import ProductEmp from '../pages/employee/ProductEmp';
+import LayoutEmployee from '../layouts/LayoutEmployee';
+import EditProductEmp from '../pages/employee/EditProductEmp';
+import ManageOrdersEmp from '../pages/employee/ManageOrdersEmp';
+import ListUser from '../pages/employee/ListUser';
+import EditUserEmp from '../pages/employee/EditUserEmp';
+import DetailOrder from '../pages/employee/DetailOrderEmp';
+import DetailOrderEmp from '../pages/employee/DetailOrderEmp';
 
 const router = createBrowserRouter([
   {
@@ -58,6 +68,23 @@ const router = createBrowserRouter([
       { path: 'payment', element: <Payment /> },
       { path: 'history', element: <History /> },
       { path: 'update/:id', element: <EditProfile /> }, // <-- ID ที่ใช้ใน URL
+    ],
+  },
+  {
+    path: '/employee',
+    element: <ProtectRouteEmployee element={<LayoutEmployee/>} />,
+    children: [
+      { index: true, element: <DashBoardEmp /> },
+      { path: 'product', element: <ProductEmp /> },
+      { path: 'product/:id', element: <EditProductEmp /> },
+      { path: 'orders', element: <ManageOrdersEmp /> },
+      { path: 'order/:orderId', element: <DetailOrderEmp /> },
+      { path: 'manage', element: <ListUser /> },
+      { path: 'user/:id', element: <EditUserEmp /> },
+
+
+
+      
     ],
   }
   

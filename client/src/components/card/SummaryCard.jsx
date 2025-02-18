@@ -12,14 +12,14 @@ const SummaryCard = () => {
     const token = useSabnuaStore((state) => state.token);
     const user = useSabnuaStore((state) => state.user);
     const getUserAddress = useSabnuaStore((state) => state.getUserAddress);
-    const addressFromStore = useSabnuaStore((state) => state.address); 
+    const addressFromStore = useSabnuaStore((state) => state.address);
     const [products, setProducts] = useState([]);
     const [cartTotal, setCartTotal] = useState(0);
     const [deliveryMethod, setDeliveryMethod] = useState("PICKUP");
     const [address, setAddress] = useState("รับที่ร้าน");
     const [errorMessage, setErrorMessage] = useState("");
     const [shippingCost, setShippingCost] = useState(0);
-    const [discount, setDiscount] = useState(0); // กำหนดให้ส่วนลดเป็น 0
+    const [discount, setDiscount] = useState(0); // ส่วนลด
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -29,10 +29,8 @@ const SummaryCard = () => {
     }, [user, getUserAddress]);
 
     useEffect(() => {
-        if (user) {
-            setAddress(user.address || "รับที่ร้าน");
-        }
-    }, [user]);
+        setAddress(deliveryMethod === "DELIVERY" ? addressFromStore || user?.address || "" : "รับที่ร้าน");
+    }, [deliveryMethod, user, addressFromStore]);
 
     useEffect(() => {
         handleGetUserCart(token);
@@ -42,8 +40,8 @@ const SummaryCard = () => {
             setErrorMessage("");
         }
 
-        setShippingCost(deliveryMethod === "DELIVERY" ? 30 : 0);
-        setDiscount(0); // ตั้งค่าหมายเลขส่วนลดเป็น 0 ก่อน
+        setShippingCost(deliveryMethod === "DELIVERY" ? 30 : 0); // คำนวณค่าจัดส่ง
+        setDiscount(0); // ตั้งส่วนลดเป็น 0
     }, [deliveryMethod, address, cartTotal]);
 
     const handleGetUserCart = async (token) => {
@@ -75,13 +73,13 @@ const SummaryCard = () => {
             return;
         }
 
+        // ส่งข้อมูลไปที่หน้าชำระเงิน
         navigate("/user/payment");
     };
 
     return (
         <div className="mx-auto max-w-4xl p-6 bg-white shadow-md rounded-md">
             <div className="flex flex-wrap -mx-4">
-                {/* ส่วนการเลือกวิธีการรับสินค้า */}
                 <div className="w-full md:w-1/2 px-4 mb-6 md:mb-0">
                     <div className="p-4 bg-gray-100 rounded-lg shadow-md space-y-4">
                         <h1 className="text-lg font-semibold text-gray-800 mb-4">วิธีการรับสินค้า</h1>
@@ -123,7 +121,6 @@ const SummaryCard = () => {
                     </div>
                 </div>
 
-                {/* ส่วนรายละเอียดคำสั่งซื้อ */}
                 <div className="w-full md:w-1/2 px-4">
                     <div className="p-4 bg-gray-100 rounded-lg shadow-md space-y-4">
                         <h1 className="text-lg font-semibold text-gray-800 mb-4">รายละเอียดคำสั่งซื้อของคุณ</h1>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getAllUser, deleteUser } from '../../api/admin';
+import { getAllUser, deleteUser, createUser } from '../../api/admin';
 import { Link } from 'react-router-dom';
 import useSabnuaStore from '../../store/SabnuaStore';
 import { FaEdit, FaTrash } from 'react-icons/fa';
@@ -8,6 +8,14 @@ import Swal from 'sweetalert2';
 const ListUserManages = () => {
     const token = useSabnuaStore((state) => state.token);
     const [users, setUsers] = useState([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        tell: '',
+        password: '',  // Add password field to formData
+        role: 'user',  // Default role
+        enabled: true, // Default status
+    });
 
     useEffect(() => {
         handleGetUsers(token);
@@ -46,9 +54,118 @@ const ListUserManages = () => {
         }
     };
 
+    const handleCreateUser = async () => {
+        try {
+            await createUser(token, formData);
+            Swal.fire('สำเร็จ!', 'สร้างผู้ใช้ใหม่สำเร็จ', 'success');
+            handleGetUsers(token); // รีเฟรชข้อมูลผู้ใช้
+            setFormData({
+                name: '',
+                email: '',
+                tell: '',
+                password: '', // Reset password
+                role: 'user',
+                enabled: true,
+            }); // รีเซ็ตฟอร์ม
+        } catch (err) {
+            console.error('เกิดข้อผิดพลาดในการสร้างผู้ใช้', err);
+            Swal.fire('ผิดพลาด!', 'ไม่สามารถสร้างผู้ใช้ กรุณาลองใหม่', 'error');
+        }
+    };
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
+
     return (
         <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-            <h1 className="text-3xl font-semibold text-yellow-700 mb-6 text-center">ข้อมูลผู้ใช้งาน</h1>
+            <h1 className="text-3xl font-bold text-yellow-600 mb-6 text-center">ข้อมูลผู้ใช้งาน</h1>
+
+            {/* Form for creating user */}
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold text-yellow-600 mb-4 text-center">สร้างผู้ใช้ใหม่</h2>
+                <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:space-x-4">
+                        <div className="w-full sm:w-1/2">
+                            <label className="block text-gray-700 font-semibold mb-1">ชื่อ</label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="ชื่อ"
+                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+                        <div className="w-full sm:w-1/2">
+                            <label className="block text-gray-700 font-semibold mb-1">อีเมล</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="อีเมล"
+                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:space-x-4">
+                        <div className="w-full sm:w-1/2">
+                            <label className="block text-gray-700 font-semibold mb-1">เบอร์โทร</label>
+                            <input
+                                type="text"
+                                name="tell"
+                                value={formData.tell}
+                                onChange={handleChange}
+                                placeholder="เบอร์โทร"
+                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+                        <div className="w-full sm:w-1/2">
+                            <label className="block text-gray-700 font-semibold mb-1">รหัสผ่าน</label>
+                            <input
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="รหัสผ่าน"
+                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:space-x-4">
+                        <div className="w-full sm:w-1/2">
+                            <label className="block text-gray-700 font-semibold mb-1">สิทธิ์</label>
+                            <select
+                                name="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                            >
+                                <option value="user">ผู้ใช้งาน</option>
+                                <option value="employee">พนักงาน</option>
+                                <option value="admin">ผู้ดูแลระบบ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleCreateUser}
+                        className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
+                    >
+                        สร้างผู้ใช้
+                    </button>
+                </div>
+            </div>
+
+            {/* User List Table */}
+            <h2 className="text-xl font-semibold text-yellow-600 mb-4 text-center ">ตารางผู้ใช้งาน</h2>
+
             <div className="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table className="min-w-full border border-gray-200">
                     <thead>
@@ -90,7 +207,6 @@ const ListUserManages = () => {
                                             <FaTrash /> ลบ
                                         </button>
                                     </td>
-
                                 </tr>
                             ))
                         ) : (

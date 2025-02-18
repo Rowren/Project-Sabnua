@@ -11,11 +11,12 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@shadcn/ui": "^0.0.4",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
-    "framer-motion": "^11.18.1",
+    "framer-motion": "^11.18.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.468.0",
     "moment": "^2.30.1",

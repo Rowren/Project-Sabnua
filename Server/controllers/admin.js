@@ -275,5 +275,47 @@ exports.getDashboardData = async (req, res) => {
   }
 };
 
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, password, tell, address, role } = req.body;
+
+    // ตรวจสอบค่าที่จำเป็น
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: "ต้องกรอก Name, email, password และ role" });
+    }
+
+    // ตรวจสอบว่าอีเมลมีอยู่ในระบบแล้วหรือยัง
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "อีเมลนี้ถูกใช้งานแล้ว" });
+    }
+
+    // ทำการแฮชรหัสผ่าน
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // สร้างผู้ใช้ใหม่
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        tell,
+        address,
+        role: role, // กำหนด role ให้เป็น 'admin' หรือ role ที่ต้องการ
+        enabled: true, // ตั้งค่าผู้ใช้ให้สามารถใช้งานได้
+      },
+    });
+
+    res.status(201).json({ message: "สร้างผู้ใช้สำเร็จ", user: newUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์" });
+  }
+};
+
 
 

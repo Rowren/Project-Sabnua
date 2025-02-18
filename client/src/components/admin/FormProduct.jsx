@@ -113,11 +113,17 @@ const FormProduct = () => {
 
     return (
         <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
+             <h1 className="text-3xl font-bold text-yellow-600 mb-6 text-center">
+                        ข้อมูลรายการอาหาร
+                    </h1>
             <div className="flex justify-center items-center">
+                
                 <form
                     onSubmit={handleOnSubmit}
                     className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6"
+
                 >
+                   
                     <h1 className="col-span-2 text-2xl font-bold mb-6 text-center text-red-600">
                         เพิ่มรายการอาหาร
                     </h1>
@@ -205,7 +211,7 @@ const FormProduct = () => {
             </div>
 
             <div className="mt-10 overflow-x-auto">
-    <h2 className="text-xl font-bold mb-4">รายการสินค้า</h2>
+    <h2 className="text-xl font-semibold text-yellow-600 mb-4 text-center">รายการสินค้า</h2>
     <div className="overflow-x-auto bg-white shadow-md rounded-lg">
 
     <table className="min-w-full border border-gray-200">

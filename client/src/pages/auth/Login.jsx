@@ -45,10 +45,12 @@ const Login = () => {
   };
 
   const roleRedirect = (role) => {
-    if(role === 'admin'){
+    if (role === 'admin') {
       navigate('/admin');
-    }else{
-      navigate(-1);
+    } else if (role === 'employee') {
+      navigate('/employee'); // เพิ่มการนำทางสำหรับ employee
+    } else {
+      navigate(-1); // หรือไปยังหน้าอื่น ๆ ที่คุณต้องการ
     }
   };
 
@@ -107,6 +109,8 @@ const Login = () => {
             </button>
           </div>
         </form>
+
+        
       </div>
     </div>
   );

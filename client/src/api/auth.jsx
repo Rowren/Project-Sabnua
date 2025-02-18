@@ -28,3 +28,17 @@ export const currentAdmin = async (Token) => {
     }
 };
 
+export const currentEmployee = async (Token) => {
+    try {
+        const res = await axios.post('http://localhost:5004/api/current-employee', {}, {
+            headers: {
+                Authorization: `Bearer ${Token}`
+            }
+        });
+        return res.data;
+    } catch (err) {
+        console.error('Error fetching current admin:', err.response?.data || err.message);
+        throw err;
+    }
+};
+

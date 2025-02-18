@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SidebarAdmin from '../components/admin/SidebarAdmin';
 import HeaderAdmin from '../components/admin/HeaderAdmin';
 import { Outlet } from 'react-router-dom';
+import Footer from '../components/Footer';
 
 const LayoutAdmin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +30,8 @@ const LayoutAdmin = () => {
         <main className="flex-1 p-6 bg-gray-200 overflow-y-auto">
           <Outlet />
         </main>
+
+        <Footer />
       </div>
     </div>
   );
