@@ -75,6 +75,22 @@ export const getOrder = async (token) => {
     }
 };
 
+export const getDetailOrder = async (token, id) => {
+    try {
+        const res = await axios.get(`http://localhost:5004/api/user/order/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        console.log("Order Detail fetched successfully:", res.data);
+        return res.data;
+    } catch (error) {
+        console.error("Error fetching order detail:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+
 
 export const updateUser = async (token, id, form) => {
     try {

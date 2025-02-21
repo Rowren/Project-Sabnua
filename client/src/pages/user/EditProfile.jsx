@@ -147,6 +147,15 @@ const EditProfile = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+  // ✅ เพิ่มฟังก์ชันแก้ไขที่อยู่
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setAddressFields({
+      ...addressFields,
+      [name]: value,
+    });
+  };
+  
   const handleSaveAddress = () => {
     const address = `${addressFields.houseNo}, ${addressFields.subdistrict}, ${addressFields.district}, ${addressFields.province}, ${addressFields.country}, ${addressFields.postalCode}, ${addressFields.landmark}`;
     setUser({

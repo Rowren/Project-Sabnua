@@ -5,12 +5,14 @@ import { getOrderUser, changeOrderStatus } from '../../api/employee';
 import Swal from 'sweetalert2';
 import { numberFormat } from '../../utils/number';
 import { dateFormat } from '../../utils/dateFormat';
+import { useNavigate } from 'react-router-dom';
 
 const DetailOrder = () => {
     const { orderId } = useParams(); // ดึง orderId จาก URL
     const token = useSabnuaStore((state) => state.token);
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         console.log("Order ID:", orderId); // ตรวจสอบค่า orderId ที่ได้รับจาก URL
@@ -48,6 +50,8 @@ const DetailOrder = () => {
                 text: `สถานะคำสั่งซื้อ ${orderId} เปลี่ยนเป็น ${orderStatus}`,
                 confirmButtonText: 'ตกลง',
             });
+            navigate("/employee/orders")
+
         } catch (err) {
             console.error('เกิดข้อผิดพลาด', err);
             Swal.fire({

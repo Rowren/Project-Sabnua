@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // เพิ่ม useNavigate
 import { getOrder } from "../../api/user";
 import useSabnuaStore from "../../store/SabnuaStore";
 import { numberFormat } from "../../utils/number";
 import { dateFormat } from "../../utils/dateFormat";
 
 const HistoryCard = () => {
+  const navigate = useNavigate(); // ใช้ useNavigate สำหรับการเปลี่ยนเส้นทาง
   const token = useSabnuaStore((state) => state.token);
   const [orders, setOrders] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 5; // จำนวนคำสั่งซื้อที่แสดงในแต่ละหน้า
 
   useEffect(() => {
     if (token) {
@@ -23,23 +27,35 @@ const HistoryCard = () => {
     }
   };
 
+  // ฟังก์ชันเพื่อเปลี่ยนเส้นทางไปที่หน้ารายละเอียด
+  const handleCardClick = (orderId) => {
+    navigate(`/user/history/${orderId}`);
+  };
+
+  // Pagination logic
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">📦 ประวัติการสั่งซื้อ</h1>
-      
-      {orders.length > 0 ? (
-        orders.map((order, index) => {
+      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">📦 ประวัติการสั่งซื้อ</h1>
+
+      {currentOrders.length > 0 ? (
+        currentOrders.map((order, index) => {
           const shippingCost = order.deliveryMethod === "DELIVERY" ? 30 : 0;
 
           return (
-            <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200 mb-6">
-              {/* Header */}
+            <div
+              key={index}
+              onClick={() => handleCardClick(order.id)} // เพิ่ม onClick เพื่อเปลี่ยนเส้นทาง
+              className="cursor-pointer bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200 mb-6 hover:shadow-lg transition-shadow duration-300"
+            >
+              {/* รหัสรายการสั่งซื้อ + วันที่สั่งซื้อ */}
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">📅 วันที่สั่งซื้อ</p>
-                  <p className="text-lg font-semibold text-gray-800">
-                    {dateFormat(order.updatedAt)}
-                  </p>
+                  <p className="text-2xl font-semibold text-gray-800"> รหัสคำสั่งซื้อ: {order.id}</p>
                 </div>
                 <div>
                   <span
@@ -58,6 +74,14 @@ const HistoryCard = () => {
                 </div>
               </div>
 
+              {/* วันที่สั่งซื้อ */}
+              <div className="mb-4">
+                <p className="text-sm text-gray-500">📅 วันที่สั่งซื้อ</p>
+                <p className="text-lg font-semibold text-gray-800">
+                  {dateFormat(order.updatedAt)}
+                </p>
+              </div>
+
               {/* วิธีจัดส่ง */}
               <div className="mb-4">
                 <p className="text-sm text-gray-500">🚚 วิธีจัดส่ง</p>
@@ -66,41 +90,7 @@ const HistoryCard = () => {
                 </p>
               </div>
 
-              {/* Product Table */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse border border-gray-300">
-                  <thead>
-                    <tr className="bg-gray-100 text-gray-600">
-                      <th className="px-4 py-2 text-left text-sm font-semibold border">สินค้า</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold border">ราคา</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold border">จำนวน</th>
-                      <th className="px-4 py-2 text-left text-sm font-semibold border">รวม</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {order.products?.map((product, idx) => (
-                      <tr key={idx} className="text-gray-800 hover:bg-gray-100 transition">
-                        <td className="px-4 py-2 border">{product.product.title}</td>
-                        <td className="px-4 py-2 border">{numberFormat(product.product.price)}</td>
-                        <td className="px-4 py-2 border text-center">{product.count}</td>
-                        <td className="px-4 py-2 border font-semibold">
-                          {numberFormat(product.count * product.product.price)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* ค่าจัดส่ง */}
-              <div className="flex justify-between items-center mt-4">
-                <p className="text-sm text-gray-500">🚛 ค่าจัดส่ง</p>
-                <p className="text-lg font-semibold text-gray-800">
-                  {numberFormat(shippingCost)}
-                </p>
-              </div>
-
-              {/* Total */}
+              {/* ราคาสุทธิ */}
               <div className="flex justify-between items-center mt-4 border-t pt-4">
                 <p className="text-sm text-gray-500">💰 ราคาสุทธิ</p>
                 <p className="text-xl font-bold text-blue-600">
@@ -112,6 +102,27 @@ const HistoryCard = () => {
         })
       ) : (
         <p className="text-center text-gray-500 text-lg">❌ ไม่มีคำสั่งซื้อ</p>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6 space-x-4">
+          <button
+            onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
+            className="border p-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-400 transition"
+          >
+            ก่อนหน้า
+          </button>
+          <span className="self-center text-gray-600 font-semibold">
+            หน้า {currentPage} จาก {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(currentPage < totalPages ? currentPage + 1 : totalPages)}
+            className="border p-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-400 transition"
+          >
+            ถัดไป
+          </button>
+        </div>
       )}
     </div>
   );

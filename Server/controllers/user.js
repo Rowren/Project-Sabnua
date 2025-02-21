@@ -273,32 +273,91 @@ exports.saveOrder = async (req, res) => {
   }
 };
 
+// ดึงรายการสั่งซื้อทั้งหมดของผู้ใช้
 exports.getOrder = async (req, res) => {
   try {
-    // ดึงคำสั่งซื้อของผู้ใช้ และเรียงจากวันล่าสุด -> เก่าสุด
     const orders = await prisma.order.findMany({
       where: { orderedById: Number(req.user.id) },
-      include: {
-        products: {
-          include: {
-            product: true,
-          },
-        },
+      select: {
+        id: true,
+        createdAt: true,
+        orderStatus: true,
+        cartTotal: true,
+        deliveryMethod: true,
       },
-      orderBy: { createdAt: "desc" }, // 🔥 เรียงจากใหม่ -> เก่า
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!orders || orders.length === 0) {
       return res.status(400).json({ ok: false, message: "No Order" });
     }
 
-    console.log(orders);
     res.json({ ok: true, orders });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+// ดึงรายละเอียดของรายการสั่งซื้อโดยใช้รหัส id
+exports.getDetailOrder = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: Number(id) }, // 🔥 แปลง id ให้เป็นตัวเลข
+      include: {
+        orderedBy: {
+          select: {
+            name: true,
+            tell: true,
+            email: true,
+          },
+        },
+        products: {
+          include: {
+            product: {
+              select: {
+                title: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ ok: false, message: "Order Not Found" });
+    }
+
+    // คำนวณราคารวมทั้งหมด
+    const total = order.products.reduce((sum, item) => sum + item.count * item.price, 0);
+
+    res.json({
+      ok: true,
+      order: {
+        id: order.id,
+        createdAt: order.createdAt,
+        orderStatus: order.orderStatus,
+        orderedBy: order.orderedBy.name,
+        deliveryMethod: order.deliveryMethod,
+        deliveryAddress: order.deliveryAddress,
+        tell: order.orderedBy.tell,
+        products: order.products.map((item) => ({
+          title: item.product.title,
+          count: item.count,
+          price: item.price,
+          total: item.count * item.price,
+        })),
+        total: total,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 
 exports.updateUser = async (req, res) => {
   try {

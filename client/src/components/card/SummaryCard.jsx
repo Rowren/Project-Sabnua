@@ -40,7 +40,7 @@ const SummaryCard = () => {
             setErrorMessage("");
         }
 
-        setShippingCost(deliveryMethod === "DELIVERY" ? 30 : 0); // คำนวณค่าจัดส่ง
+         
         setDiscount(0); // ตั้งส่วนลดเป็น 0
     }, [deliveryMethod, address, cartTotal]);
 

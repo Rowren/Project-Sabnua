@@ -32,6 +32,7 @@ import ListUser from '../pages/employee/ListUser';
 import EditUserEmp from '../pages/employee/EditUserEmp';
 import DetailOrder from '../pages/employee/DetailOrderEmp';
 import DetailOrderEmp from '../pages/employee/DetailOrderEmp';
+import DetailHistory from '../pages/user/DetailHistory';
 
 const router = createBrowserRouter([
   {
@@ -67,6 +68,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomeUser /> },
       { path: 'payment', element: <Payment /> },
       { path: 'history', element: <History /> },
+      { path: 'history/:id', element: <DetailHistory /> },
       { path: 'update/:id', element: <EditProfile /> }, // <-- ID ที่ใช้ใน URL
     ],
   },

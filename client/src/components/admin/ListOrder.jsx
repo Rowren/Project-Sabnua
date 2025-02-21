@@ -10,23 +10,29 @@ const ListOrder = () => {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [deliveryFilter, setDeliveryFilter] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest'); // Default sorting
+  const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(false);
+
+  // สำหรับ Pagination
+  const [currentPage, setCurrentPage] = useState(1); // หน้าแรก
+  const ordersPerPage = 10; // จำนวนรายการต่อหน้า
 
   useEffect(() => {
     handleGetOrder(token, statusFilter, deliveryFilter, sortOrder);
-  }, [statusFilter, deliveryFilter, sortOrder]);
+  }, [statusFilter, deliveryFilter, sortOrder, currentPage]);
 
   const handleGetOrder = async (token, statusFilter, deliveryFilter, sortOrder) => {
     setLoading(true);
     try {
       const res = await getOrdersAdmin(token, statusFilter, deliveryFilter);
       let sortedOrders = res.data;
+
       if (sortOrder === 'newest') {
         sortedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       } else {
         sortedOrders.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       }
+
       setOrders(sortedOrders);
     } catch (err) {
       console.error('เกิดข้อผิดพลาด', err);
@@ -39,7 +45,6 @@ const ListOrder = () => {
     try {
       const res = await changeOrderStatus(token, orderId, orderStatus);
       
-      // Update the orders state immediately to reflect the status change
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId ? { ...order, orderStatus } : order
@@ -62,15 +67,19 @@ const ListOrder = () => {
       });
     }
   };
-  
 
-  const calculateTotalWithShipping = (order) => {
-    let total = order.cartTotal;
-    if (order.deliveryType === 'DELIVERY') {
-      total += 30; // เพิ่มค่าจัดส่ง 30 บาท
-    }
-    return numberFormat(total);
+  // คำนวณราคาทั้งหมดโดยไม่รวมค่าจัดส่ง
+  const calculateTotalWithoutShipping = (order) => {
+    return numberFormat(order.cartTotal);
   };
+
+  // ฟังก์ชันสำหรับแสดงรายการในหน้าปัจจุบัน
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+  // คำนวณจำนวนหน้าทั้งหมด
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
 
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
@@ -147,7 +156,7 @@ const ListOrder = () => {
               </tr>
             </thead>
             <tbody className="bg-gray-50">
-              {orders?.map((order, index) => (
+              {currentOrders?.map((order, index) => (
                 <tr key={index} className="hover:bg-gray-100 transition-colors duration-200">
                   <td className="px-6 py-4 text-sm text-gray-700 text-center">{order.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
@@ -167,7 +176,7 @@ const ListOrder = () => {
                     </ul>
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-gray-700">{calculateTotalWithShipping(order)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{calculateTotalWithoutShipping(order)}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${order.orderStatus === 'รอดำเนินการ'
@@ -209,6 +218,29 @@ const ListOrder = () => {
           </table>
         </div>
       )}
+
+      {/* Pagination */}
+      <div className="flex justify-between mt-4">
+        <button
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+        >
+          ก่อนหน้า
+        </button>
+
+        <div className="flex items-center text-sm text-gray-700">
+          <span>หน้า {currentPage} จาก {totalPages}</span>
+        </div>
+
+        <button
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(currentPage + 1)}
+        >
+          ถัดไป
+        </button>
+      </div>
     </div>
   );
 };
